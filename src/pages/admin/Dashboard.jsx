@@ -36,7 +36,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Gross Revenue (7d)" value={currency(totalRevenue)} icon={IndianRupee} accent="dusk" trend="+12.4% vs last week" />
         <StatCard label="Experts Pending Review" value={pendingExperts.length} icon={Users} accent="marigold" />
-        <StatCard label="Services Pending Review" value={pendingServices.length} icon={BadgeCheck} accent="sage" />
+        <StatCard label="Sessions Pending Review" value={pendingServices.length} icon={BadgeCheck} accent="sage" />
         <StatCard label="Payouts Awaiting Approval" value={currency(pendingPayoutTotal)} icon={Wallet} accent="rose" />
       </div>
 
@@ -88,14 +88,14 @@ export default function Dashboard() {
       <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
         <div className="rounded-2xl border border-dusk-50 bg-white p-5 shadow-sm">
           <div className="mb-3 flex items-center justify-between">
-            <h3 className="font-display text-base font-semibold text-ink">Services awaiting approval</h3>
-            <Link to="/admin/services" className="flex items-center gap-1 text-xs font-medium text-dusk-500 hover:text-dusk-700">
+            <h3 className="font-display text-base font-semibold text-ink">Sessions awaiting approval</h3>
+            <Link to="/admin/sessions" className="flex items-center gap-1 text-xs font-medium text-dusk-500 hover:text-dusk-700">
               View all <ArrowUpRight size={13} />
             </Link>
           </div>
           <div className="space-y-3">
             {pendingServices.slice(0, 4).map((s) => (
-              <Link to={`/admin/services/${s.id}`} key={s.id} className="flex items-center justify-between rounded-xl p-2 hover:bg-canvas-alt/60">
+              <Link to={`/admin/sessions/${s.id}`} key={s.id} className="flex items-center justify-between rounded-xl p-2 hover:bg-canvas-alt/60">
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-ink">{s.title}</p>
                   <p className="truncate text-xs text-ink-soft">by {expertById[s.expertId]?.name} · {currency(s.price)}</p>

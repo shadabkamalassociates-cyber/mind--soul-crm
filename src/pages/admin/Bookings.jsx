@@ -27,7 +27,7 @@ export default function Bookings() {
 
   const columns = [
     { key: 'user', header: 'User', render: (r) => userById[r.userId]?.name || '—' },
-    { key: 'service', header: 'Service', render: (r) => <span className="max-w-[220px] truncate block">{serviceById[r.serviceId]?.title}</span> },
+    { key: 'service', header: 'Session', render: (r) => <span className="max-w-[220px] truncate block">{serviceById[r.serviceId]?.title}</span> },
     { key: 'expert', header: 'Expert', render: (r) => expertById[r.expertId]?.name || '—' },
     { key: 'sessionAt', header: 'Session Time', render: (r) => formatDateTime(r.sessionAt) },
     { key: 'amount', header: 'Amount', render: (r) => currency(r.amount) },
@@ -45,7 +45,7 @@ export default function Bookings() {
       <div className="mb-4 flex justify-end">
         <div className="relative">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-soft" />
-          <input placeholder="Search by user or service" value={search} onChange={(e) => setSearch(e.target.value)} className={`${inputCls} w-72 pl-8`} />
+          <input placeholder="Search by user or session" value={search} onChange={(e) => setSearch(e.target.value)} className={`${inputCls} w-72 pl-8`} />
         </div>
       </div>
       <DataTable columns={columns} data={filtered} isLoading={isLoading} />

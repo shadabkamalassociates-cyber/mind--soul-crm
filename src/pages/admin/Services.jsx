@@ -40,7 +40,7 @@ export default function Services() {
 
   const columns = [
     {
-      key: 'title', header: 'Service', render: (r) => (
+      key: 'title', header: 'Session', render: (r) => (
         <div className="flex items-center gap-2">
           {r.hasLiveComponent && <Video size={14} className="shrink-0 text-marigold-500" />}
           {r.videoUrl && <Film size={14} className="shrink-0 text-dusk-500" />}
@@ -60,7 +60,7 @@ export default function Services() {
 
   return (
     <div>
-      <PageHeader title="Services" subtitle="Courses, workshops, live sessions, and 1:1 consultations submitted by experts." />
+      <PageHeader title="Sessions" subtitle="Recorded sessions, courses, workshops, and consultations submitted by experts." />
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-1 rounded-xl bg-canvas-alt p-1">
@@ -83,7 +83,7 @@ export default function Services() {
         </div>
       </div>
 
-      <DataTable columns={columns} data={filtered} isLoading={isLoading} onRowClick={(r) => navigate(`/admin/services/${r.id}`)} emptyMessage="No services match this view." />
+      <DataTable columns={columns} data={filtered} isLoading={isLoading} onRowClick={(r) => navigate(`/admin/sessions/${r.id}`)} emptyMessage="No sessions match this view." />
     </div>
   )
 }

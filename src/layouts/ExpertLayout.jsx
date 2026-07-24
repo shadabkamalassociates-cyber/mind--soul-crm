@@ -13,7 +13,7 @@ export default function ExpertLayout() {
   const items = [
     { to: '/expert', label: 'Dashboard', icon: LayoutGrid, end: true },
     { to: '/expert/profile', label: 'My Profile', icon: UserCircle },
-    { to: '/expert/services', label: 'My Services', icon: BadgeCheck, badge: needsAttention },
+    { to: '/expert/sessions', label: 'My Sessions', icon: BadgeCheck, badge: needsAttention },
     { to: '/expert/live-sessions', label: 'Live Sessions', icon: Video },
     { to: '/expert/bookings', label: 'Bookings', icon: CalendarClock },
     { to: '/expert/earnings', label: 'Earnings & Payouts', icon: Wallet },

@@ -1,5 +1,20 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 
+const parseArray = (val) => {
+  if (!val) return []
+  if (Array.isArray(val)) return val
+  if (typeof val === 'string') {
+    try {
+      const parsed = JSON.parse(val)
+      if (Array.isArray(parsed)) return parsed
+    } catch {
+      // not JSON array
+    }
+    return val.split(',').map((s) => s.trim()).filter(Boolean)
+  }
+  return []
+}
+
 export const expertApi = createApi({
   reducerPath: 'expertApi',
   baseQuery: fetchBaseQuery({
@@ -53,11 +68,30 @@ export const expertApi = createApi({
               created_at: e.created_at,
               categories: e.categories || [],
               skillTags: Array.isArray(e.categories) && e.categories.length > 0 ? e.categories.map((c) => c.name || c) : ['General'],
-              languages: e.languages || ['English', 'Hindi'],
-              certificates: e.certificates || [],
+              languages: parseArray(e.languagesArray || e.languages || ['English', 'Hindi']),
+              certificates: parseArray(e.certificationsValue || e.certificates || []),
               govId: e.govId || null,
               bankVerified: e.bankVerified ?? false,
               earningsLifetime: e.earningsLifetime ?? 0,
+              alternate_phone: e.alternate_phone || null,
+              cover_image: e.cover_image || null,
+              country: e.country || null,
+              timezone: e.timezone || null,
+              professional_title: e.professional_title || null,
+              profession: e.profession || null,
+              whatsapp_number: e.whatsapp_number || null,
+              city: e.city || null,
+              state: e.state || null,
+              education: e.education || null,
+              certificationsValue: e.certificationsValue || null,
+              specialization: e.specialization || null,
+              languagesArray: e.languagesArray || null,
+              about: e.about || null,
+              why_started: e.why_started || null,
+              mission: e.mission || null,
+              client_approach: e.client_approach || null,
+              uniqueness: e.uniqueness || null,
+              profile_completed: e.profile_completed || false,
             }
           })
         }
@@ -107,11 +141,30 @@ export const expertApi = createApi({
           created_at: item.created_at,
           categories: item.categories || [],
           skillTags: Array.isArray(item.categories) && item.categories.length > 0 ? item.categories.map((c) => c.name || c) : ['General'],
-          languages: item.languages || ['English', 'Hindi'],
-          certificates: item.certificates || [],
+          languages: parseArray(item.languagesArray || item.languages || ['English', 'Hindi']),
+          certificates: parseArray(item.certificationsValue || item.certificates || []),
           govId: item.govId || null,
           bankVerified: item.bankVerified ?? false,
           earningsLifetime: item.earningsLifetime ?? 0,
+          alternate_phone: item.alternate_phone || null,
+          cover_image: item.cover_image || null,
+          country: item.country || null,
+          timezone: item.timezone || null,
+          professional_title: item.professional_title || null,
+          profession: item.profession || null,
+          whatsapp_number: item.whatsapp_number || null,
+          city: item.city || null,
+          state: item.state || null,
+          education: item.education || null,
+          certificationsValue: item.certificationsValue || null,
+          specialization: item.specialization || null,
+          languagesArray: item.languagesArray || null,
+          about: item.about || null,
+          why_started: item.why_started || null,
+          mission: item.mission || null,
+          client_approach: item.client_approach || null,
+          uniqueness: item.uniqueness || null,
+          profile_completed: item.profile_completed || false,
         }
       },
       providesTags: (result, error, id) => [{ type: 'Expert', id }],
@@ -128,7 +181,7 @@ export const expertApi = createApi({
       query: ({ id, ...body }) => ({
         url: `/experts/update/${id}`,
         method: 'PUT',
-        body,
+        body: body.formData || body,
       }),
       invalidatesTags: (result, error, { id }) => [{ type: 'Expert', id }, 'Expert'],
     }),

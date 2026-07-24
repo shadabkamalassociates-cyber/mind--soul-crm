@@ -244,11 +244,11 @@ export default function Services() {
   return (
     <div>
       <PageHeader
-        title="My Services"
-        subtitle="Courses, workshops, live sessions, and 1:1 consultations you offer."
+        title="My Sessions"
+        subtitle="Recorded sessions, courses, workshops, and consultations you offer."
         action={
           <Button onClick={openAdd}>
-            <Plus size={16} /> New Service
+            <Plus size={16} /> New Session
           </Button>
         }
       />
@@ -256,8 +256,8 @@ export default function Services() {
       {!isLoading && mine.length === 0 ? (
         <EmptyState
           icon={BadgeCheck}
-          title="No services yet"
-          message="Create your first offering — save as draft, then submit it for admin approval."
+          title="No sessions yet"
+          message="Post your first session — save as draft, then submit it for admin approval."
         />
       ) : (
         <DataTable columns={columns} data={mine} isLoading={isLoading} />
@@ -266,7 +266,7 @@ export default function Services() {
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={editing ? "Edit service" : "New service"}
+        title={editing ? "Edit session" : "New session"}
         width="max-w-2xl"
       >
         <form onSubmit={handleSubmit}>
@@ -411,7 +411,7 @@ export default function Services() {
               }
             />
             <span className="text-sm font-medium text-ink">
-              This service also includes a live session
+              This session also includes a live component
             </span>
           </label>
 

@@ -27,7 +27,7 @@ export default function Bookings() {
 
   const columns = [
     { key: 'user', header: 'User', render: (r) => userById[r.userId]?.name || '—' },
-    { key: 'service', header: 'Service', render: (r) => <span className="max-w-[220px] truncate block">{serviceById[r.serviceId]?.title}</span> },
+    { key: 'service', header: 'Session', render: (r) => <span className="max-w-[220px] truncate block">{serviceById[r.serviceId]?.title}</span> },
     { key: 'sessionAt', header: 'Session Time', render: (r) => formatDateTime(r.sessionAt) },
     { key: 'amount', header: 'Amount', render: (r) => currency(r.amount) },
     { key: 'status', header: 'Status', render: (r) => <Badge tone={meta(r.status).tone}>{meta(r.status).label}</Badge> },
@@ -35,7 +35,7 @@ export default function Bookings() {
 
   return (
     <div>
-      <PageHeader title="Bookings" subtitle="Everyone who has booked one of your services." />
+      <PageHeader title="Bookings" subtitle="Everyone who has booked one of your sessions." />
       <div className="mb-4 flex justify-end">
         <div className="relative">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-soft" />
@@ -43,7 +43,7 @@ export default function Bookings() {
         </div>
       </div>
       {!isLoading && mine.length === 0 ? (
-        <EmptyState icon={CalendarClock} title="No bookings yet" message="Once your services go live, bookings will appear here." />
+        <EmptyState icon={CalendarClock} title="No bookings yet" message="Once your sessions go live, bookings will appear here." />
       ) : (
         <DataTable columns={columns} data={mine} isLoading={isLoading} />
       )}

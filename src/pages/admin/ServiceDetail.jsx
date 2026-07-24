@@ -45,8 +45,8 @@ export default function ServiceDetail() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <button onClick={() => navigate('/admin/services')} className="mb-4 flex items-center gap-1.5 text-sm font-medium text-ink-soft hover:text-ink">
-        <ArrowLeft size={15} /> Back to services
+      <button onClick={() => navigate('/admin/sessions')} className="mb-4 flex items-center gap-1.5 text-sm font-medium text-ink-soft hover:text-ink">
+        <ArrowLeft size={15} /> Back to sessions
       </button>
 
       <div className="rounded-2xl border border-dusk-50 bg-white p-6 shadow-sm">
@@ -106,7 +106,7 @@ export default function ServiceDetail() {
               </div>
             )}
             {videoBlocksLive && service.videoStatus !== 'pending_review' && (
-              <p className="mt-2 text-xs text-ink-soft">The recorded video must be approved before this service can go live.</p>
+              <p className="mt-2 text-xs text-ink-soft">The recorded video must be approved before this session can go live.</p>
             )}
           </div>
         )}

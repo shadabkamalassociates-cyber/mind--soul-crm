@@ -40,7 +40,7 @@ export default function LiveSessions() {
 
   return (
     <div>
-      <PageHeader title="Live Sessions" subtitle="All your live sessions run on Google Meet — the link goes live once admin approves your service." />
+      <PageHeader title="Live Sessions" subtitle="All your live sessions run on Google Meet — the link goes live once admin approves your session." />
 
       <h3 className="mb-3 font-display text-base font-semibold text-ink">Upcoming</h3>
       {upcoming.length === 0 && !isLoading ? (

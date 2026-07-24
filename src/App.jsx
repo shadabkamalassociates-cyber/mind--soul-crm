@@ -48,8 +48,8 @@ export default function App() {
           <Route path="categories" element={<AdminCategories />} />
           <Route path="experts" element={<AdminExperts />} />
           <Route path="experts/:id" element={<AdminExpertDetail />} />
-          <Route path="services" element={<AdminServices />} />
-          <Route path="services/:id" element={<AdminServiceDetail />} />
+          <Route path="sessions" element={<AdminServices />} />
+          <Route path="sessions/:id" element={<AdminServiceDetail />} />
           <Route path="bookings" element={<AdminBookings />} />
           <Route path="live-sessions" element={<AdminLiveSessions />} />
           <Route path="reviews" element={<AdminReviews />} />
@@ -63,7 +63,7 @@ export default function App() {
         <Route path="/expert" element={<ExpertLayout />}>
           <Route index element={<ExpertDashboard />} />
           <Route path="profile" element={<ExpertProfile />} />
-          <Route path="services" element={<ExpertServices />} />
+          <Route path="sessions" element={<ExpertServices />} />
           <Route path="live-sessions" element={<ExpertLiveSessions />} />
           <Route path="bookings" element={<ExpertBookings />} />
           <Route path="earnings" element={<ExpertEarnings />} />

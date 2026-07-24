@@ -31,15 +31,15 @@ export default function Dashboard() {
         <StatCard label="Lifetime Earnings" value={currency(expert?.earningsLifetime)} icon={IndianRupee} accent="dusk" />
         <StatCard label="Rating" value={expert?.rating ? `${expert.rating} ★` : '—'} icon={Star} accent="marigold" />
         <StatCard label="Sessions Completed" value={expert?.totalSessions ?? 0} icon={CalendarClock} accent="sage" />
-        <StatCard label="Live Services" value={mine.filter((s) => s.status === 'live').length} icon={Video} accent="rose" />
+        <StatCard label="Live Sessions" value={mine.filter((s) => s.status === 'live').length} icon={Video} accent="rose" />
       </div>
 
       {needsAttention.length > 0 && (
         <div className="mt-5 rounded-2xl border border-marigold-300 bg-marigold-100/50 p-4">
-          <p className="text-sm font-medium text-marigold-700">{needsAttention.length} service(s) need your attention</p>
+          <p className="text-sm font-medium text-marigold-700">{needsAttention.length} session(s) need your attention</p>
           <div className="mt-2 space-y-1.5">
             {needsAttention.map((s) => (
-              <Link to="/expert/services" key={s.id} className="flex items-center justify-between text-sm text-ink hover:underline">
+              <Link to="/expert/sessions" key={s.id} className="flex items-center justify-between text-sm text-ink hover:underline">
                 <span>{s.title}</span>
                 <Badge tone={meta(s.status).tone}>{meta(s.status).label}</Badge>
               </Link>

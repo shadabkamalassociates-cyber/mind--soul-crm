@@ -18,7 +18,7 @@ export default function AdminLayout() {
     { to: '/admin', label: 'Dashboard', icon: LayoutGrid, end: true },
     { to: '/admin/categories', label: 'Categories', icon: Tag },
     { to: '/admin/experts', label: 'Experts', icon: Users, badge: pendingExperts },
-    { to: '/admin/services', label: 'Services', icon: BadgeCheck, badge: pendingServices },
+    { to: '/admin/sessions', label: 'Sessions', icon: BadgeCheck, badge: pendingServices },
     { to: '/admin/bookings', label: 'Bookings', icon: CalendarClock },
     { to: '/admin/live-sessions', label: 'Live Sessions', icon: Video },
     { to: '/admin/reviews', label: 'Reviews', icon: Star },
