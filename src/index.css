@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --color-canvas: #FBF9F5;
+  --color-canvas-alt: #F3EFE7;
+  --color-ink: #211F33;
+  --color-ink-soft: #57536E;
+
+  --color-dusk-50: #EEEDF5;
+  --color-dusk-100: #D6D3E8;
+  --color-dusk-300: #9089C4;
+  --color-dusk-500: #58508E;
+  --color-dusk-700: #2D2A4A;
+  --color-dusk-900: #1A1830;
+
+  --color-marigold-100: #FCEACB;
+  --color-marigold-300: #F2C36C;
+  --color-marigold-500: #E8A33D;
+  --color-marigold-700: #B87A22;
+
+  --color-sage-100: #DCEBE5;
+  --color-sage-300: #8FBBAB;
+  --color-sage-500: #4F7C6D;
+  --color-sage-700: #365A4E;
+
+  --color-rose-100: #F6DFD7;
+  --color-rose-300: #DE9C87;
+  --color-rose-500: #C2634A;
+  --color-rose-700: #954B37;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-dusk-300) transparent;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+@keyframes pulse-live {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.live-dot {
+  animation: pulse-live 1.6s ease-in-out infinite;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-marigold-500);
+  outline-offset: 2px;
+}
