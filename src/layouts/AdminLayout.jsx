@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router-dom'
-import { LayoutGrid, Tag, Users, BadgeCheck, CalendarClock, Video, Star, Ticket, Wallet, Settings } from 'lucide-react'
+import { LayoutGrid, Tag, Users, BadgeCheck, CalendarClock, Video, Star, Ticket, Wallet, Settings, GraduationCap } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { useGetExpertsQuery } from '../services/expertService'
 import { useGetServicesQuery } from '../services/serviceService'
@@ -17,7 +17,8 @@ export default function AdminLayout() {
   const items = [
     { to: '/admin', label: 'Dashboard', icon: LayoutGrid, end: true },
     { to: '/admin/categories', label: 'Categories', icon: Tag },
-    { to: '/admin/experts', label: 'Experts', icon: Users, badge: pendingExperts },
+    { to: '/admin/users', label: 'Users', icon: Users },
+    { to: '/admin/experts', label: 'Experts', icon: GraduationCap, badge: pendingExperts },
     { to: '/admin/sessions', label: 'Sessions', icon: BadgeCheck, badge: pendingServices },
     { to: '/admin/bookings', label: 'Bookings', icon: CalendarClock },
     { to: '/admin/live-sessions', label: 'Live Sessions', icon: Video },

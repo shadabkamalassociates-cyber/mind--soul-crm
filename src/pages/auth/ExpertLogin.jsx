@@ -13,6 +13,7 @@ export default function ExpertLogin() {
       defaultPhone="9310874215"
       redirectTo="/expert"
       otherPortal={{ label: 'Are you an admin?', to: '/admin/login', linkText: 'Go to Admin login' }}
+      signupLink={{ label: 'New expert?', to: '/expert/signup', linkText: 'Apply to join' }}
     />
   )
 }

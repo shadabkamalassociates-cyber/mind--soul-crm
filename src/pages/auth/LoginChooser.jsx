@@ -42,6 +42,14 @@ export default function LoginChooser() {
             </span>
           </Link>
         </div>
+        <div className="mt-8 text-center">
+          <p className="text-sm text-dusk-100">
+            Want to offer spiritual services?{' '}
+            <Link to="/expert/signup" className="font-semibold text-marigold-300 hover:text-marigold-400 hover:underline">
+              Apply to join as an expert
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   )

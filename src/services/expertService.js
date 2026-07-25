@@ -216,6 +216,13 @@ export const expertApi = createApi({
         body: { phone, password },
       }),
     }),
+    expertSignUp: builder.mutation({
+      query: (body) => ({
+        url: '/expert/signUp',
+        method: 'POST',
+        body: body.formData || body,
+      }),
+    }),
   }),
 })
 
@@ -228,5 +235,6 @@ export const {
   useBlockExpertMutation,
   useVerifyExpertMutation,
   useExpertLoginMutation,
+  useExpertSignUpMutation,
 } = expertApi
 

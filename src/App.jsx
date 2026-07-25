@@ -4,10 +4,12 @@ import ProtectedRoute from './routes/ProtectedRoute'
 import LoginChooser from './pages/auth/LoginChooser'
 import AdminLogin from './pages/auth/AdminLogin'
 import ExpertLogin from './pages/auth/ExpertLogin'
+import ExpertSignUp from './pages/auth/ExpertSignUp'
 
 import AdminLayout from './layouts/AdminLayout'
 import AdminDashboard from './pages/admin/Dashboard'
 import AdminCategories from './pages/admin/Categories'
+import AdminUsers from './pages/admin/Users'
 import AdminExperts from './pages/admin/Experts'
 import AdminExpertDetail from './pages/admin/ExpertDetail'
 import AdminServices from './pages/admin/Services'
@@ -40,12 +42,14 @@ export default function App() {
       <Route path="/login" element={<LoginChooser />} />
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/expert/login" element={<ExpertLogin />} />
+      <Route path="/expert/signup" element={<ExpertSignUp />} />
       <Route path="/" element={<RootRedirect />} />
 
       <Route element={<ProtectedRoute role="admin" />}>
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
           <Route path="categories" element={<AdminCategories />} />
+          <Route path="users" element={<AdminUsers />} />
           <Route path="experts" element={<AdminExperts />} />
           <Route path="experts/:id" element={<AdminExpertDetail />} />
           <Route path="sessions" element={<AdminServices />} />

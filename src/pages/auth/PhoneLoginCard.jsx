@@ -7,7 +7,7 @@ import { setCredentials } from '../../features/auth/authSlice'
 import { Button, Field, inputCls, Spinner } from '../../components/Common'
 
 export default function PhoneLoginCard({
-  role, roleLabel, icon: Icon, accentClass, quote, quoteBy, defaultPhone, redirectTo, otherPortal,
+  role, roleLabel, icon: Icon, accentClass, quote, quoteBy, defaultPhone, redirectTo, otherPortal, signupLink,
 }) {
   const [phone, setPhone] = useState(defaultPhone)
   const [password, setPassword] = useState('')
@@ -107,6 +107,12 @@ export default function PhoneLoginCard({
             {otherPortal.label}{' '}
             <Link to={otherPortal.to} className="font-medium text-dusk-700 hover:underline">{otherPortal.linkText}</Link>
           </p>
+          {signupLink && (
+            <p className="mt-2 text-center text-xs text-ink-soft">
+              {signupLink.label}{' '}
+              <Link to={signupLink.to} className="font-medium text-dusk-700 hover:underline">{signupLink.linkText}</Link>
+            </p>
+          )}
         </div>
       </div>
     </div>
