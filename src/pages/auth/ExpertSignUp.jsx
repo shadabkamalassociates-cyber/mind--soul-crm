@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { UserRound, Sparkles, CheckCircle2 } from "lucide-react";
+import { UserRound, Sparkles, CheckCircle2, Camera, UploadCloud } from "lucide-react";
 import { useExpertSignUpMutation } from "../../services/expertService";
 import { Button, Field, inputCls, Spinner } from "../../components/Common";
 
@@ -25,16 +25,39 @@ export default function ExpertSignUp() {
     bio: "",
   });
 
+  const [profileImageFile, setProfileImageFile] = useState(null);
+  const [profileImagePreview, setProfileImagePreview] = useState("");
+
+  const [coverImageFile, setCoverImageFile] = useState(null);
+  const [coverImagePreview, setCoverImagePreview] = useState("");
+
+  const [certificationImageFile, setCertificationImageFile] = useState(null);
+  const [certificationImagePreview, setCertificationImagePreview] = useState("");
+
+  const [educationImageFile, setEducationImageFile] = useState(null);
+  const [educationImagePreview, setEducationImagePreview] = useState("");
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleNext = (e) => {
+  const handleFileChange = (e, setFile, setPreview) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleStep1Next = (e) => {
     e.preventDefault();
     setError("");
 
-    // Basic step 1 validation
     if (!form.first_name || !form.email || !form.phone || !form.password) {
       setError("Please fill in all required fields.");
       return;
@@ -48,7 +71,7 @@ export default function ExpertSignUp() {
     setStep(2);
   };
 
-  const handleSubmit = async (e) => {
+  const handleStep2Next = (e) => {
     e.preventDefault();
     setError("");
 
@@ -57,23 +80,44 @@ export default function ExpertSignUp() {
       return;
     }
 
-    const cleanPhone = form.phone.trim().replace(/[^\d]/g, "");
-    const payload = {
-      first_name: form.first_name,
-      last_name: form.last_name || "",
-      email: form.email,
-      phone: cleanPhone,
-      alternate_phone: form.alternate_phone || "",
-      password: form.password,
-      profession: form.profession,
-      professional_title: form.professional_title,
-      experience_years: Number(form.experience_years),
-      consultation_fee: form.consultation_fee ? Number(form.consultation_fee) : 0,
-      bio: form.bio || "",
-      role: "expert",
-    };
+    setStep(3);
+  };
 
-    const { data, error: err } = await expertSignUp(payload);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    const cleanPhone = form.phone.trim().replace(/[^\d]/g, "");
+
+    const formData = new FormData();
+    formData.append("first_name", form.first_name);
+    formData.append("last_name", form.last_name || "");
+    formData.append("email", form.email);
+    formData.append("phone", cleanPhone);
+    formData.append("alternate_phone", form.alternate_phone || "");
+    formData.append("password", form.password);
+    formData.append("profession", form.profession);
+    formData.append("professional_title", form.professional_title);
+    formData.append("experience_years", String(Number(form.experience_years)));
+    formData.append("consultation_fee", form.consultation_fee ? String(Number(form.consultation_fee)) : "0");
+    formData.append("bio", form.bio || "");
+    formData.append("role", "expert");
+
+    // Append files to the correct fields expected by the backend
+    if (profileImageFile) {
+      formData.append("profile_image", profileImageFile);
+    }
+    if (coverImageFile) {
+      formData.append("cover_image", coverImageFile);
+    }
+    if (certificationImageFile) {
+      formData.append("documents", certificationImageFile);
+    }
+    if (educationImageFile) {
+      formData.append("documents", educationImageFile);
+    }
+
+    const { data, error: err } = await expertSignUp(formData);
 
     if (err) {
       const errorMsg =
@@ -104,9 +148,10 @@ export default function ExpertSignUp() {
             Application Received!
           </h1>
           <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-            Thank you for registering as an expert on SoulSensei. Your profile
-            has been successfully created and submitted for verification. Our
-            administrators will review your credentials and contact you shortly.
+            Thank you for registering as an expert on SoulSensei. Your profile and
+            uploaded documents have been successfully received and submitted for
+            verification. Our administrators will review your credentials and contact
+            you shortly.
           </p>
           <div className="mt-8 flex flex-col gap-3">
             <Button onClick={() => navigate("/expert/login")} className="w-full">
@@ -170,15 +215,15 @@ export default function ExpertSignUp() {
               Expert Sign Up
             </h1>
             <span className="text-xs font-semibold uppercase tracking-wider text-ink-soft">
-              Step {step} of 2
+              Step {step} of 3
             </span>
           </div>
           <p className="mt-1 text-sm text-ink-soft">
             Register to offer your consultations and classes.
           </p>
 
-          {step === 1 ? (
-            <form onSubmit={handleNext} className="mt-6 space-y-4">
+          {step === 1 && (
+            <form onSubmit={handleStep1Next} className="mt-6 space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <Field label="First Name">
                   <input
@@ -251,8 +296,10 @@ export default function ExpertSignUp() {
                 <Button type="submit">Continue</Button>
               </div>
             </form>
-          ) : (
-            <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+          )}
+
+          {step === 2 && (
+            <form onSubmit={handleStep2Next} className="mt-6 space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Profession">
                   <input
@@ -321,7 +368,160 @@ export default function ExpertSignUp() {
                   onClick={() => setStep(1)}
                   className="text-xs font-medium text-ink-soft hover:text-ink hover:underline"
                 >
-                  ← Back to account credentials
+                  ← Back to credentials
+                </button>
+                <Button type="submit">Continue</Button>
+              </div>
+            </form>
+          )}
+
+          {step === 3 && (
+            <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <span className="mb-1 block text-xs font-semibold text-ink">
+                    Profile Image
+                  </span>
+                  <label className="flex h-24 w-full cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-dusk-200 bg-canvas hover:bg-dusk-50/50 overflow-hidden transition-colors">
+                    {profileImagePreview ? (
+                      <img
+                        src={profileImagePreview}
+                        alt="Avatar Preview"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="text-center p-2">
+                        <Camera size={18} className="mx-auto text-ink-soft" />
+                        <span className="mt-1 block text-[10px] text-ink-soft">
+                          Upload Avatar
+                        </span>
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) =>
+                        handleFileChange(
+                          e,
+                          setProfileImageFile,
+                          setProfileImagePreview
+                        )
+                      }
+                    />
+                  </label>
+                </div>
+
+                <div>
+                  <span className="mb-1 block text-xs font-semibold text-ink">
+                    Cover Image
+                  </span>
+                  <label className="flex h-24 w-full cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-dusk-200 bg-canvas hover:bg-dusk-50/50 overflow-hidden transition-colors">
+                    {coverImagePreview ? (
+                      <img
+                        src={coverImagePreview}
+                        alt="Cover Preview"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="text-center p-2">
+                        <UploadCloud size={18} className="mx-auto text-ink-soft" />
+                        <span className="mt-1 block text-[10px] text-ink-soft">
+                          Upload Cover
+                        </span>
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) =>
+                        handleFileChange(e, setCoverImageFile, setCoverImagePreview)
+                      }
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <span className="mb-1 block text-xs font-semibold text-ink">
+                    Education Certificate
+                  </span>
+                  <label className="flex h-24 w-full cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-dusk-200 bg-canvas hover:bg-dusk-50/50 overflow-hidden transition-colors">
+                    {educationImagePreview ? (
+                      <img
+                        src={educationImagePreview}
+                        alt="Education Preview"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="text-center p-2">
+                        <UploadCloud size={18} className="mx-auto text-ink-soft" />
+                        <span className="mt-1 block text-[10px] text-ink-soft">
+                          Upload Education Proof
+                        </span>
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) =>
+                        handleFileChange(
+                          e,
+                          setEducationImageFile,
+                          setEducationImagePreview
+                        )
+                      }
+                    />
+                  </label>
+                </div>
+
+                <div>
+                  <span className="mb-1 block text-xs font-semibold text-ink">
+                    Certification Proof
+                  </span>
+                  <label className="flex h-24 w-full cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-dusk-200 bg-canvas hover:bg-dusk-50/50 overflow-hidden transition-colors">
+                    {certificationImagePreview ? (
+                      <img
+                        src={certificationImagePreview}
+                        alt="Certification Preview"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="text-center p-2">
+                        <UploadCloud size={18} className="mx-auto text-ink-soft" />
+                        <span className="mt-1 block text-[10px] text-ink-soft">
+                          Upload Certification
+                        </span>
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) =>
+                        handleFileChange(
+                          e,
+                          setCertificationImageFile,
+                          setCertificationImagePreview
+                        )
+                      }
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {error && <p className="text-sm text-rose-700">{error}</p>}
+
+              <div className="flex items-center justify-between pt-2">
+                <button
+                  type="button"
+                  onClick={() => setStep(2)}
+                  className="text-xs font-medium text-ink-soft hover:text-ink hover:underline"
+                >
+                  ← Back to profile details
                 </button>
                 <Button type="submit" disabled={isLoading}>
                   {isLoading ? (

@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router-dom'
-import { LayoutGrid, Tag, Users, BadgeCheck, CalendarClock, Video, Star, Ticket, Wallet, Settings, GraduationCap } from 'lucide-react'
+import { LayoutGrid, Tag, Users, BadgeCheck, CalendarClock, Video, Star, Ticket, Wallet, Settings, GraduationCap, BookOpen, FolderOpen } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { useGetExpertsQuery } from '../services/expertService'
 import { useGetServicesQuery } from '../services/serviceService'
@@ -22,10 +22,12 @@ export default function AdminLayout() {
     { to: '/admin/sessions', label: 'Sessions', icon: BadgeCheck, badge: pendingServices },
     { to: '/admin/bookings', label: 'Bookings', icon: CalendarClock },
     { to: '/admin/live-sessions', label: 'Live Sessions', icon: Video },
-    { to: '/admin/reviews', label: 'Reviews', icon: Star },
-    { to: '/admin/coupons', label: 'Coupons', icon: Ticket },
-    { to: '/admin/payouts', label: 'Payouts', icon: Wallet, badge: pendingPayouts },
-    { to: '/admin/settings', label: 'Settings', icon: Settings },
+    // { to: '/admin/reviews', label: 'Reviews', icon: Star },
+    // { to: '/admin/coupons', label: 'Coupons', icon: Ticket },
+    // { to: '/admin/payouts', label: 'Payouts', icon: Wallet, badge: pendingPayouts },
+    { to: '/admin/blogs', label: 'Blogs', icon: BookOpen },
+    { to: '/admin/blog-categories', label: 'Blog Categories', icon: FolderOpen },
+    // { to: '/admin/settings', label: 'Settings', icon: Settings },
   ]
 
   return (

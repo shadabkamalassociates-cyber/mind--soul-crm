@@ -101,7 +101,7 @@ export default function Experts() {
       city: expert.city || '',
       state: expert.state || '',
       education: expert.education || '',
-      certificationsValue: Array.isArray(expert.certificates) ? expert.certificates.join(', ') : (expert.certificationsValue || ''),
+      certificationsValue: expert.certificationsValue || '',
       specialization: expert.specialization || '',
       languagesArray: Array.isArray(expert.languages) ? expert.languages.join(', ') : (expert.languagesArray || ''),
       about: expert.about || '',
@@ -118,51 +118,22 @@ export default function Experts() {
     e.preventDefault()
     if (!editingExpert) return
 
-    const formData = new FormData()
-    formData.append('first_name', form.first_name)
-    formData.append('last_name', form.last_name || '')
-    formData.append('email', form.email)
-    formData.append('phone', form.phone)
-    formData.append('bio', form.bio || '')
-    formData.append('experience_years', form.experience_years ? String(Number(form.experience_years)) : '')
-    formData.append('consultation_fee', form.consultation_fee !== undefined && form.consultation_fee !== '' ? String(Number(form.consultation_fee)) : '')
-    formData.append('verification_status', form.verification_status)
-    formData.append('alternate_phone', form.alternate_phone || '')
-    formData.append('country', form.country || '')
-    formData.append('timezone', form.timezone || '')
-    formData.append('professional_title', form.professional_title || '')
-    formData.append('profession', form.profession || '')
-    formData.append('whatsapp_number', form.whatsapp_number || '')
-    formData.append('city', form.city || '')
-    formData.append('state', form.state || '')
-    formData.append('education', form.education || '')
-    formData.append('certificationsValue', form.certificationsValue || '')
-    formData.append('specialization', form.specialization || '')
-    
-    const langs = form.languagesArray ? form.languagesArray.split(',').map((s) => s.trim()).filter(Boolean) : []
-    formData.append('languagesArray', JSON.stringify(langs))
-    
-    formData.append('about', form.about || '')
-    formData.append('why_started', form.why_started || '')
-    formData.append('mission', form.mission || '')
-    formData.append('client_approach', form.client_approach || '')
-    formData.append('uniqueness', form.uniqueness || '')
-    formData.append('profile_completed', form.profile_completed ? 'true' : 'false')
-
-    if (form.profile_image_file) {
-      formData.append('profile_image', form.profile_image_file)
-    } else if (form.profile_image && !form.profile_image.startsWith('data:')) {
-      formData.append('profile_image', form.profile_image)
-    }
-    if (form.cover_image_file) {
-      formData.append('cover_image', form.cover_image_file)
-    } else if (form.cover_image && !form.cover_image.startsWith('data:')) {
-      formData.append('cover_image', form.cover_image)
+    const payload = {
+      first_name: form.first_name,
+      last_name: form.last_name || '',
+      email: form.email,
+      phone: form.phone,
+      bio: form.bio || '',
+      experience_years: form.experience_years ? Number(form.experience_years) : null,
+      consultation_fee: form.consultation_fee !== undefined && form.consultation_fee !== '' ? Number(form.consultation_fee) : 0,
+      profile_image: form.profile_image || null,
+      status: form.status || 'pending',
+      verification_status: form.verification_status || 'PENDING',
     }
 
     await updateExpert({
       id: editingExpert.id,
-      formData,
+      ...payload,
     })
     setEditingExpert(null)
   }
@@ -287,7 +258,7 @@ export default function Experts() {
                   <Field label="Verification Status">
                     <select className={inputCls} value={form.verification_status} onChange={(e) => setForm({ ...form, verification_status: e.target.value })}>
                       <option value="PENDING">Pending Review</option>
-                      <option value="APPROVED">Approved</option>
+                      <option value="VERIFIED">Approved</option>
                       <option value="NEEDS_CHANGES">Needs Changes</option>
                       <option value="REJECTED">Rejected</option>
                     </select>
@@ -332,9 +303,9 @@ export default function Experts() {
                 <Field label="Languages (comma separated)">
                   <input className={inputCls} value={form.languagesArray} onChange={(e) => setForm({ ...form, languagesArray: e.target.value })} placeholder="e.g. English, Hindi, Spanish" />
                 </Field>
-                <Field label="Certifications (comma separated)">
+                {/* <Field label="Certifications (comma separated)">
                   <textarea rows={2} className={inputCls} value={form.certificationsValue} onChange={(e) => setForm({ ...form, certificationsValue: e.target.value })} placeholder="e.g. Yoga Alliance RYT-200, Reiki Level II" />
-                </Field>
+                </Field> */}
               </div>
             )}
 

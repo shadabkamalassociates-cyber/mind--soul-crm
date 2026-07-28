@@ -18,14 +18,8 @@ const parseArray = (val) => {
 export const expertApi = createApi({
   reducerPath: 'expertApi',
   baseQuery: fetchBaseQuery({
-    baseUrl: 'https://backend.apnasmartgate.com/api',
-    prepareHeaders: (headers, { getState }) => {
-      const token = getState()?.auth?.token
-      if (token) {
-        headers.set('Authorization', `Bearer ${token}`)
-      }
-      return headers
-    },
+    credentials: 'include',
+    baseUrl: '/api',
   }),
   tagTypes: ['Expert'],
   endpoints: (builder) => ({

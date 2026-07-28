@@ -1,17 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
-import { ShieldCheck, FileText, Save } from 'lucide-react'
+import { ShieldCheck, FileText, Save, Camera } from 'lucide-react'
 import { useGetExpertQuery, useUpdateExpertMutation } from '../../services/expertService'
 import { PageHeader, Field, inputCls, Button, Spinner } from '../../components/Common'
 import Badge from '../../components/Badge'
 import StatusStepper from '../../components/StatusStepper'
 import { meta } from '../../utils/status'
-
-const steps = [
-  { key: 'pending', label: 'Applied' },
-  { key: 'needs_changes', label: 'In Review' },
-  { key: 'approved', label: 'Approved' },
-]
 
 export default function Profile() {
   const user = useSelector((s) => s.auth.user)
@@ -20,13 +14,12 @@ export default function Profile() {
   const [form, setForm] = useState(null)
   const [saved, setSaved] = useState(false)
   const [activeTab, setActiveTab] = useState('basic')
-
   useEffect(() => {
     if (expert && !form) {
       setForm({
         ...expert,
         languagesArray: Array.isArray(expert.languages) ? expert.languages.join(', ') : (expert.languagesArray || ''),
-        certificationsValue: Array.isArray(expert.certificates) ? expert.certificates.join(', ') : (expert.certificationsValue || ''),
+        certificationsValue: expert.certificationsValue || '',
         profile_image_file: null,
         cover_image_file: null,
       })
@@ -40,50 +33,24 @@ export default function Profile() {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    const formData = new FormData()
-    formData.append('first_name', form.first_name)
-    formData.append('last_name', form.last_name || '')
-    formData.append('email', form.email)
-    formData.append('phone', form.phone)
-    formData.append('bio', form.bio || '')
-    formData.append('experience_years', form.experience_years ? String(Number(form.experience_years)) : '')
-    formData.append('consultation_fee', form.consultation_fee !== undefined && form.consultation_fee !== '' ? String(Number(form.consultation_fee)) : '')
-    formData.append('alternate_phone', form.alternate_phone || '')
-    formData.append('country', form.country || '')
-    formData.append('timezone', form.timezone || '')
-    formData.append('professional_title', form.professional_title || '')
-    formData.append('profession', form.profession || '')
-    formData.append('whatsapp_number', form.whatsapp_number || '')
-    formData.append('city', form.city || '')
-    formData.append('state', form.state || '')
-    formData.append('education', form.education || '')
-    formData.append('certificationsValue', form.certificationsValue || '')
-    formData.append('specialization', form.specialization || '')
-    
-    const langs = form.languagesArray ? form.languagesArray.split(',').map((s) => s.trim()).filter(Boolean) : []
-    formData.append('languagesArray', JSON.stringify(langs))
-    
-    formData.append('about', form.about || '')
-    formData.append('why_started', form.why_started || '')
-    formData.append('mission', form.mission || '')
-    formData.append('client_approach', form.client_approach || '')
-    formData.append('uniqueness', form.uniqueness || '')
-    formData.append('profile_completed', form.profile_completed ? 'true' : 'false')
+    const payload = {
+      first_name: form.first_name,
+      last_name: form.last_name || '',
+      email: form.email,
+      phone: form.phone,
+      bio: form.bio || '',
+      experience_years: form.experience_years ? Number(form.experience_years) : null,
+      consultation_fee: form.consultation_fee !== undefined && form.consultation_fee !== '' ? Number(form.consultation_fee) : 0,
+      profile_image: form.profile_image || null,
+      status: form.status || 'pending',
+      verification_status: form.verification_status || 'PENDING',
+    }
 
-    if (form.profile_image_file) {
-      formData.append('profile_image', form.profile_image_file)
-    } else if (form.profile_image && !form.profile_image.startsWith('data:')) {
-      formData.append('profile_image', form.profile_image)
-    }
-    if (form.cover_image_file) {
-      formData.append('cover_image', form.cover_image_file)
-    } else if (form.cover_image && !form.cover_image.startsWith('data:')) {
-      formData.append('cover_image', form.cover_image)
-    }
+    console.log(payload,"6555555555555555")
 
     await updateExpert({
       id: form.id,
-      formData,
+      ...payload,
     })
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
@@ -110,17 +77,31 @@ export default function Profile() {
 
       {/* Header Cover Card */}
       <div className="overflow-hidden rounded-2xl border border-dusk-50 bg-white shadow-sm mb-6">
-        <div className="relative h-40 w-full bg-gradient-to-r from-dusk-700 via-dusk-500 to-marigold-500">
+        <div className="relative h-40 w-full bg-gradient-to-r from-dusk-700 via-dusk-500 to-marigold-500 group">
           {form.cover_image && (
             <img src={form.cover_image} alt="Cover" className="h-full w-full object-cover" />
           )}
-          <div className="absolute right-4 bottom-4">
+          {/* Cover Edit Button overlay */}
+          <label className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer z-10">
+            <span className="flex items-center gap-1.5 rounded-lg bg-white/90 px-3 py-1.5 text-xs font-semibold text-dusk-900 shadow-sm hover:bg-white transition-colors">
+              <Camera size={14} /> Change Cover Image
+            </span>
+            <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageChange(e, 'cover_image')} />
+          </label>
+          <div className="absolute right-4 bottom-4 z-20">
             <Badge tone={meta(form.status).tone}>{meta(form.status).label}</Badge>
           </div>
         </div>
         <div className="relative px-6 pb-6 pt-12">
-          <div className="absolute -top-12 left-6">
-            <img src={form.avatar} alt="" className="h-20 w-20 rounded-2xl border-4 border-white object-cover shadow-sm" />
+          <div className="absolute -top-12 left-6 group/avatar">
+            <div className="relative h-20 w-20 rounded-2xl border-4 border-white shadow-sm overflow-hidden bg-white">
+              <img src={form.profile_image || form.avatar} alt="" className="h-full w-full object-cover" />
+              {/* Avatar Edit Button overlay */}
+              <label className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover/avatar:opacity-100 transition-opacity cursor-pointer">
+                <Camera size={16} className="text-white" />
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageChange(e, 'profile_image')} />
+              </label>
+            </div>
           </div>
           <div>
             <h2 className="font-display text-lg font-bold text-ink">{form.name}</h2>
@@ -130,10 +111,6 @@ export default function Profile() {
       </div>
 
       <div className="rounded-2xl border border-dusk-50 bg-white p-6 shadow-sm">
-        {/* Verification Stepper */}
-        <div className="mb-6">
-          <StatusStepper steps={steps} currentStatus={stepperStatus} rejected={form.status === 'rejected'} reviewNote={form.reviewNote} />
-        </div>
 
         {/* Profile Tabs */}
         <div className="mb-6 flex flex-wrap border-b border-dusk-100">
@@ -222,9 +199,41 @@ export default function Profile() {
               <Field label="Languages (comma separated)" hint="Languages you can consult in.">
                 <input className={inputCls} value={form.languagesArray || ''} onChange={(e) => setForm({ ...form, languagesArray: e.target.value })} placeholder="e.g. English, Hindi, Spanish" />
               </Field>
-              <Field label="Certifications (comma separated)" hint="Certificates and awards you possess.">
+              {/* <Field label="Certifications (comma separated)" hint="Certificates and awards you possess.">
                 <textarea rows={3} className={inputCls} value={form.certificationsValue || ''} onChange={(e) => setForm({ ...form, certificationsValue: e.target.value })} placeholder="e.g. Yoga Alliance RYT-200, Reiki Level II" />
-              </Field>
+              </Field> */}
+              {form.certificates && form.certificates.length > 0 && (
+                <div className="mt-4 border-t border-dusk-50 pt-3">
+                  <span className="mb-2 block text-xs font-semibold text-ink font-sans">Uploaded Certificate & Education Photos</span>
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    {form.certificates.map((c, idx) => (
+                      <div key={c} className="group relative flex flex-col overflow-hidden rounded-xl border border-dusk-100 bg-canvas shadow-sm transition-all hover:shadow-md">
+                        <div className="relative aspect-[4/3] w-full overflow-hidden bg-dusk-50">
+                          <img 
+                            src={c} 
+                            alt={`Document ${idx + 1}`} 
+                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" 
+                          />
+                          <a 
+                            href={c} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <span className="rounded-lg bg-white/95 px-2.5 py-1.5 text-[11px] font-semibold text-ink shadow-sm hover:bg-white transition-colors">
+                              View Full Image
+                            </span>
+                          </a>
+                        </div>
+                        <div className="flex items-center gap-1.5 p-2 bg-canvas-alt border-t border-dusk-50">
+                          <FileText size={13} className="text-ink-soft shrink-0" />
+                          <span className="text-[11px] font-medium text-ink-soft truncate">Document {idx + 1}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -302,14 +311,45 @@ export default function Profile() {
                 <input type="file" accept="image/*" className={inputCls} onChange={(e) => handleImageChange(e, 'cover_image')} />
               </div>
               <div className="border-t border-dusk-50 pt-3">
-                <span className="mb-1.5 block text-sm font-medium text-ink">Documents submitted</span>
-                <div className="mt-1.5 flex flex-wrap gap-2">
-                  {form.certificates.map((c) => (
-                    <span key={c} className="flex items-center gap-1.5 rounded-lg border border-dusk-100 bg-canvas px-3 py-1.5 text-xs text-ink-soft"><FileText size={13} /> {c}</span>
-                  ))}
-                  {form.govId && <span className="flex items-center gap-1.5 rounded-lg border border-dusk-100 bg-canvas px-3 py-1.5 text-xs text-ink-soft"><ShieldCheck size={13} /> {form.govId}</span>}
-                  {form.certificates.length === 0 && !form.govId && <span className="text-xs text-ink-soft">No documents on file.</span>}
-                </div>
+                <span className="mb-1.5 block text-sm font-medium text-ink font-sans">Documents & Certificates</span>
+                {form.certificates && form.certificates.length > 0 ? (
+                  <div className="mt-2.5 grid grid-cols-2 gap-4 sm:grid-cols-3">
+                    {form.certificates.map((c, idx) => (
+                      <div key={c} className="group relative flex flex-col overflow-hidden rounded-xl border border-dusk-100 bg-canvas shadow-sm transition-all hover:shadow-md">
+                        <div className="relative aspect-[4/3] w-full overflow-hidden bg-dusk-50">
+                          <img 
+                            src={c} 
+                            alt={`Document ${idx + 1}`} 
+                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" 
+                          />
+                          <a 
+                            href={c} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <span className="rounded-lg bg-white/95 px-2.5 py-1.5 text-[11px] font-semibold text-ink shadow-sm hover:bg-white transition-colors">
+                              View Full Image
+                            </span>
+                          </a>
+                        </div>
+                        <div className="flex items-center gap-1.5 p-2 bg-canvas-alt border-t border-dusk-50">
+                          <FileText size={13} className="text-ink-soft shrink-0" />
+                          <span className="text-[11px] font-medium text-ink-soft truncate">Document {idx + 1}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-ink-soft mt-1">No documents on file.</p>
+                )}
+                
+                {form.govId && (
+                  <div className="mt-3 flex items-center gap-1.5 rounded-lg border border-dusk-100 bg-canvas px-3 py-1.5 text-xs text-ink-soft w-fit">
+                    <ShieldCheck size={13} className="text-sage-600" />
+                    Government ID: <span className="font-semibold text-ink">{form.govId}</span>
+                  </div>
+                )}
               </div>
               <div className="border-t border-dusk-50 pt-3">
                 <div className="flex items-center gap-2 text-sm">

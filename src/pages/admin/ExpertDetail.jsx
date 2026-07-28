@@ -81,8 +81,9 @@ export default function ExpertDetail() {
   const stepperStatus = expert.status === 'approved' ? 'approved' : expert.status === 'needs_changes' ? 'needs_changes' : 'pending'
 
   const actVerify = async (status, reason) => {
-    await verifyExpert({ id: expert.id, user_id: expert.id, status, reason })
-    await updateStatus({ id: expert.id, status: status.toLowerCase(), reviewNote: reason })
+    const backendStatus = status === 'APPROVED' ? 'VERIFIED' : status
+    await verifyExpert({ id: expert.id, user_id: expert.id, status: backendStatus, reason })
+    await updateStatus({ id: expert.id, status: backendStatus.toLowerCase(), reviewNote: reason })
     if (status === 'NEEDS_CHANGES') setChangesModal(false)
   }
 
@@ -115,7 +116,7 @@ export default function ExpertDetail() {
       city: expert.city || '',
       state: expert.state || '',
       education: expert.education || '',
-      certificationsValue: Array.isArray(expert.certificates) ? expert.certificates.join(', ') : (expert.certificationsValue || ''),
+      certificationsValue: expert.certificationsValue || '',
       specialization: expert.specialization || '',
       languagesArray: Array.isArray(expert.languages) ? expert.languages.join(', ') : (expert.languagesArray || ''),
       about: expert.about || '',
@@ -132,52 +133,25 @@ export default function ExpertDetail() {
   const handleEditSubmit = async (e) => {
     e.preventDefault()
 
-    const formData = new FormData()
-    formData.append('first_name', editForm.first_name)
-    formData.append('last_name', editForm.last_name || '')
-    formData.append('email', editForm.email)
-    formData.append('phone', editForm.phone)
-    formData.append('bio', editForm.bio || '')
-    formData.append('experience_years', editForm.experience_years ? String(Number(editForm.experience_years)) : '')
-    formData.append('consultation_fee', editForm.consultation_fee !== undefined && editForm.consultation_fee !== '' ? String(Number(editForm.consultation_fee)) : '')
-    formData.append('verification_status', editForm.verification_status)
-    formData.append('alternate_phone', editForm.alternate_phone || '')
-    formData.append('country', editForm.country || '')
-    formData.append('timezone', editForm.timezone || '')
-    formData.append('professional_title', editForm.professional_title || '')
-    formData.append('profession', editForm.profession || '')
-    formData.append('whatsapp_number', editForm.whatsapp_number || '')
-    formData.append('city', editForm.city || '')
-    formData.append('state', editForm.state || '')
-    formData.append('education', editForm.education || '')
-    formData.append('certificationsValue', editForm.certificationsValue || '')
-    formData.append('specialization', editForm.specialization || '')
-    
-    const langs = editForm.languagesArray ? editForm.languagesArray.split(',').map((s) => s.trim()).filter(Boolean) : []
-    formData.append('languagesArray', JSON.stringify(langs))
-    
-    formData.append('about', editForm.about || '')
-    formData.append('why_started', editForm.why_started || '')
-    formData.append('mission', editForm.mission || '')
-    formData.append('client_approach', editForm.client_approach || '')
-    formData.append('uniqueness', editForm.uniqueness || '')
-    formData.append('profile_completed', editForm.profile_completed ? 'true' : 'false')
-
-    if (editForm.profile_image_file) {
-      formData.append('profile_image', editForm.profile_image_file)
-    } else if (editForm.profile_image && !editForm.profile_image.startsWith('data:')) {
-      formData.append('profile_image', editForm.profile_image)
-    }
-    if (editForm.cover_image_file) {
-      formData.append('cover_image', editForm.cover_image_file)
-    } else if (editForm.cover_image && !editForm.cover_image.startsWith('data:')) {
-      formData.append('cover_image', editForm.cover_image)
+    const payload = {
+      first_name: editForm.first_name,
+      last_name: editForm.last_name || '',
+      email: editForm.email,
+      phone: editForm.phone,
+      bio: editForm.bio || '',
+      experience_years: editForm.experience_years ? Number(editForm.experience_years) : null,
+      consultation_fee: editForm.consultation_fee !== undefined && editForm.consultation_fee !== '' ? Number(editForm.consultation_fee) : 0,
+      profile_image: editForm.profile_image || null,
+      status: editForm.status || 'pending',
+      verification_status: editForm.verification_status || 'PENDING',
     }
 
-    await updateExpert({
-      id: expert.id,
-      formData,
-    })
+    console.log(payload,"4444444444444444444")
+
+    // await updateExpert({
+    //   id: expert.id,
+    //   ...payload,
+    // })
     setEditModal(false)
   }
 
@@ -310,22 +284,45 @@ export default function ExpertDetail() {
             </div>
 
             <div className="mt-6 border-t border-dusk-50 pt-5">
-              <h3 className="mb-2 text-sm font-semibold text-ink">Documents submitted</h3>
-              <div className="flex flex-wrap gap-2">
-                {expert.certificates.map((c) => (
-                  <span key={c} className="flex items-center gap-1.5 rounded-lg border border-dusk-100 bg-canvas px-3 py-1.5 text-xs text-ink-soft">
-                    <FileText size={13} /> {c}
-                  </span>
-                ))}
-                {expert.govId && (
-                  <span className="flex items-center gap-1.5 rounded-lg border border-dusk-100 bg-canvas px-3 py-1.5 text-xs text-ink-soft">
-                    <ShieldCheck size={13} /> {expert.govId}
-                  </span>
-                )}
-                {expert.certificates.length === 0 && !expert.govId && (
-                  <span className="text-xs text-ink-soft">No documents uploaded.</span>
-                )}
-              </div>
+              <h3 className="mb-2 text-sm font-semibold text-ink">Documents & Certificates</h3>
+              {expert.certificates && expert.certificates.length > 0 ? (
+                <div className="mt-2.5 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  {expert.certificates.map((c, idx) => (
+                    <div key={c} className="group relative flex flex-col overflow-hidden rounded-xl border border-dusk-100 bg-canvas shadow-sm transition-all hover:shadow-md">
+                      <div className="relative aspect-[4/3] w-full overflow-hidden bg-dusk-50">
+                        <img 
+                          src={c} 
+                          alt={`Document ${idx + 1}`} 
+                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" 
+                        />
+                        <a 
+                          href={c} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <span className="rounded-lg bg-white/95 px-2.5 py-1.5 text-[11px] font-semibold text-ink shadow-sm hover:bg-white transition-colors">
+                            View Full Image
+                          </span>
+                        </a>
+                      </div>
+                      <div className="flex items-center gap-1.5 p-2 bg-canvas-alt border-t border-dusk-50">
+                        <FileText size={13} className="text-ink-soft shrink-0" />
+                        <span className="text-[11px] font-medium text-ink-soft truncate">Document {idx + 1}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-ink-soft mt-1">No documents uploaded.</p>
+              )}
+              
+              {expert.govId && (
+                <div className="mt-3 flex items-center gap-1.5 rounded-lg border border-dusk-100 bg-canvas px-3 py-1.5 text-xs text-ink-soft w-fit">
+                  <ShieldCheck size={13} className="text-sage-600" />
+                  Government ID: <span className="font-semibold text-ink">{expert.govId}</span>
+                </div>
+              )}
               <div className="mt-3 flex items-center gap-1.5 text-xs text-ink-soft">
                 Bank details: {expert.bankVerified ? <Badge tone="approved">Verified</Badge> : <Badge tone="pending">Unverified</Badge>}
               </div>
@@ -575,7 +572,7 @@ export default function ExpertDetail() {
                   <Field label="Verification Status">
                     <select className={inputCls} value={editForm.verification_status} onChange={(e) => setEditForm({ ...editForm, verification_status: e.target.value })}>
                       <option value="PENDING">Pending Review</option>
-                      <option value="APPROVED">Approved</option>
+                      <option value="VERIFIED">Approved</option>
                       <option value="NEEDS_CHANGES">Needs Changes</option>
                       <option value="REJECTED">Rejected</option>
                     </select>

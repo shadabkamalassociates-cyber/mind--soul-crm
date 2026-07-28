@@ -9,6 +9,7 @@ import { reviewApi } from '../services/reviewService'
 import { couponApi } from '../services/couponService'
 import { payoutApi } from '../services/payoutService'
 import { settingsApi } from '../services/settingsService'
+import { blogApi } from '../services/blogService'
 import authReducer from '../features/auth/authSlice'
 
 export const store = configureStore({
@@ -24,6 +25,7 @@ export const store = configureStore({
     [couponApi.reducerPath]: couponApi.reducer,
     [payoutApi.reducerPath]: payoutApi.reducer,
     [settingsApi.reducerPath]: settingsApi.reducer,
+    [blogApi.reducerPath]: blogApi.reducer,
   },
   middleware: (getDefault) =>
     getDefault().concat(
@@ -36,6 +38,7 @@ export const store = configureStore({
       reviewApi.middleware,
       couponApi.middleware,
       payoutApi.middleware,
-      settingsApi.middleware
+      settingsApi.middleware,
+      blogApi.middleware
     ),
 })

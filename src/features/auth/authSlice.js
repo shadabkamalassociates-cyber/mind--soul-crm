@@ -6,7 +6,6 @@ const stored = (() => {
 
 const initialState = {
   user: stored?.user || null,
-  token: stored?.token || null,
   role: stored?.user?.role ? stored.user.role.toLowerCase() : null,
 }
 
@@ -15,15 +14,13 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     setCredentials(state, action) {
-      const { user, token } = action.payload
+      const { user } = action.payload
       state.user = user
-      state.token = token || state.token
       state.role = user?.role ? user.role.toLowerCase() : null
-      sessionStorage.setItem('soulsensei_session', JSON.stringify({ user, token: state.token }))
+      sessionStorage.setItem('soulsensei_session', JSON.stringify({ user }))
     },
     logout(state) {
       state.user = null
-      state.token = null
       state.role = null
       sessionStorage.removeItem('soulsensei_session')
     },

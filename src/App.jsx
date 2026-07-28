@@ -20,6 +20,8 @@ import AdminReviews from './pages/admin/Reviews'
 import AdminCoupons from './pages/admin/Coupons'
 import AdminPayouts from './pages/admin/Payouts'
 import AdminSettings from './pages/admin/Settings'
+import AdminBlogs from './pages/admin/Blogs'
+import AdminBlogCategories from './pages/admin/BlogCategories'
 
 import ExpertLayout from './layouts/ExpertLayout'
 import ExpertDashboard from './pages/expert/Dashboard'
@@ -60,6 +62,8 @@ export default function App() {
           <Route path="coupons" element={<AdminCoupons />} />
           <Route path="payouts" element={<AdminPayouts />} />
           <Route path="settings" element={<AdminSettings />} />
+          <Route path="blogs" element={<AdminBlogs />} />
+          <Route path="blog-categories" element={<AdminBlogCategories />} />
         </Route>
       </Route>
 

@@ -3,14 +3,8 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 export const reviewApi = createApi({
   reducerPath: 'reviewApi',
   baseQuery: fetchBaseQuery({
-    baseUrl: 'https://backend.apnasmartgate.com/api',
-    prepareHeaders: (headers, { getState }) => {
-      const token = getState()?.auth?.token
-      if (token) {
-        headers.set('Authorization', `Bearer ${token}`)
-      }
-      return headers
-    },
+    credentials: 'include',
+    baseUrl: '/api',
   }),
   tagTypes: ['Review'],
   endpoints: (builder) => ({
