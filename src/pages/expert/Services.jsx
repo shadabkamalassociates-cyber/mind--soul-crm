@@ -303,13 +303,32 @@ export default function Services() {
                 placeholder="e.g. Reiki Healing for Deep Relaxation"
               />
             </Field>
-            <Field label="Thumbnail URL">
-              <input
-                className={inputCls}
-                value={form.thumbnail}
-                onChange={(e) => setForm({ ...form, thumbnail: e.target.value })}
-                placeholder="https://image-url.jpg"
-              />
+            <Field label="Thumbnail">
+              <label className="flex h-32 w-full cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-dusk-200 bg-canvas hover:bg-dusk-50/50 overflow-hidden transition-all">
+                {thumbnailPreview ? (
+                  <img
+                    src={thumbnailPreview}
+                    alt="Thumbnail preview"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="text-center p-3">
+                    <ImageIcon size={22} className="mx-auto text-ink-soft mb-1" />
+                    <span className="mt-1 block text-xs text-ink font-medium">
+                      Upload Thumbnail
+                    </span>
+                    <span className="block text-[10px] text-ink-soft mt-0.5">
+                      JPG, PNG or WEBP
+                    </span>
+                  </div>
+                )}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/webp"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+              </label>
             </Field>
           </div>
 
@@ -494,8 +513,8 @@ export default function Services() {
             >
               Cancel
             </Button>
-            <Button type="submit">
-              {editing ? "Save changes" : "Create Session"}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Saving..." : editing ? "Save changes" : "Create Session"}
             </Button>
           </div>
         </form>
