@@ -148,7 +148,7 @@ export default function ExpertSignUp() {
             Application Received!
           </h1>
           <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-            Thank you for registering as an expert on SoulSensei. Your profile and
+            Thank you for registering as an expert on Cosmicguruji. Your profile and
             uploaded documents have been successfully received and submitted for
             verification. Our administrators will review your credentials and contact
             you shortly.
@@ -186,7 +186,7 @@ export default function ExpertSignUp() {
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-white">
               <Sparkles size={18} />
             </div>
-            <span className="font-display text-lg font-semibold">SoulSensei</span>
+            <span className="font-display text-lg font-semibold">Cosmicguruji</span>
           </div>
           <div className="relative">
             <p className="font-display text-2xl font-medium leading-snug">

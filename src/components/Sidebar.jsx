@@ -42,7 +42,7 @@ export default function Sidebar({ items, roleLabel }) {
         </div>
         {!isCollapsed && (
           <div className="min-w-0 transition-opacity duration-300">
-            <p className="truncate font-display text-base font-semibold leading-tight text-ink">SoulSensei</p>
+            <p className="truncate font-display text-base font-semibold leading-tight text-ink">Cosmicguruji</p>
             <p className="truncate text-[11px] font-medium uppercase tracking-wide text-ink-soft">{roleLabel}</p>
           </div>
         )}

@@ -150,7 +150,7 @@ export default function Categories() {
     <div>
       <PageHeader
         title="Categories"
-        subtitle="Manage category master records used across SoulSensei platform."
+        subtitle="Manage category master records used across Cosmicguruji platform."
         action={
           <Button onClick={openAdd}>
             <Plus size={16} /> Add Category

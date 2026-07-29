@@ -1,11 +1,20 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, Pencil, Trash2 } from 'lucide-react'
-import { useGetExpertsQuery, useUpdateExpertMutation, useDeleteExpertMutation } from '../../services/expertService'
-import { PageHeader, Button, Field, inputCls } from '../../components/Common'
+import { Search, Pencil, Trash2, UserPlus } from 'lucide-react'
+import {
+  useGetExpertsQuery,
+  useUpdateExpertMutation,
+  useDeleteExpertMutation,
+  useExpertSignUpMutation,
+} from '../../services/expertService'
+import { PageHeader, Button } from '../../components/Common'
 import DataTable from '../../components/DataTable'
 import Badge from '../../components/Badge'
 import Modal from '../../components/Modal'
+import ExpertFormFields, {
+  ExpertFormTabBar,
+  buildExpertRegisterFormData,
+} from '../../components/ExpertFormFields'
 import { meta, formatDate } from '../../utils/status'
 
 const tabs = [
@@ -49,15 +58,28 @@ const emptyForm = {
   profile_completed: false,
 }
 
+const emptyRegisterForm = {
+  ...emptyForm,
+  password: '',
+  certifications: '',
+  languages: '',
+}
+
 export default function Experts() {
   const { data: experts = [], isLoading } = useGetExpertsQuery()
   const [updateExpert, { isLoading: isUpdating }] = useUpdateExpertMutation()
   const [deleteExpert, { isLoading: isDeleting }] = useDeleteExpertMutation()
+  const [expertSignUp, { isLoading: isRegistering }] = useExpertSignUpMutation()
   const [tab, setTab] = useState('all')
   const [search, setSearch] = useState('')
   const [editingExpert, setEditingExpert] = useState(null)
   const [form, setForm] = useState(emptyForm)
+  const [registerOpen, setRegisterOpen] = useState(false)
+  const [registerForm, setRegisterForm] = useState(emptyRegisterForm)
+  const [registerTab, setRegisterTab] = useState('basic')
+  const [registerError, setRegisterError] = useState('')
   const [deleteConfirmId, setDeleteConfirmId] = useState(null)
+  const [deleteError, setDeleteError] = useState('')
   const [editTab, setEditTab] = useState('basic')
 
   const navigate = useNavigate()
@@ -101,7 +123,7 @@ export default function Experts() {
       city: expert.city || '',
       state: expert.state || '',
       education: expert.education || '',
-      certificationsValue: expert.certificationsValue || '',
+      certificationsValue: expert.certificationsValue || expert.certifications || '',
       specialization: expert.specialization || '',
       languagesArray: Array.isArray(expert.languages) ? expert.languages.join(', ') : (expert.languagesArray || ''),
       about: expert.about || '',
@@ -112,6 +134,42 @@ export default function Experts() {
       profile_completed: !!expert.profile_completed,
     })
     setEditTab('basic')
+  }
+
+  const openRegister = () => {
+    setRegisterForm(emptyRegisterForm)
+    setRegisterTab('basic')
+    setRegisterError('')
+    setRegisterOpen(true)
+  }
+
+  const handleRegister = async (e) => {
+    e.preventDefault()
+    setRegisterError('')
+
+    if (!registerForm.first_name || !registerForm.email || !registerForm.password) {
+      setRegisterError('First name, email and password are required.')
+      return
+    }
+
+    const { data, error } = await expertSignUp(buildExpertRegisterFormData(registerForm))
+
+    if (error) {
+      const errorMsg =
+        typeof error.data === 'string'
+          ? error.data
+          : error.data?.message || 'Registration failed. Please check your inputs.'
+      setRegisterError(errorMsg)
+      return
+    }
+
+    if (data?.success === false) {
+      setRegisterError(data.message || 'Registration failed.')
+      return
+    }
+
+    setRegisterOpen(false)
+    setRegisterForm(emptyRegisterForm)
   }
 
   const handleUpdate = async (e) => {
@@ -140,8 +198,14 @@ export default function Experts() {
 
   const handleDelete = async (e, id) => {
     e.stopPropagation()
-    await deleteExpert([id])
-    setDeleteConfirmId(null)
+    setDeleteError('')
+
+    try {
+      await deleteExpert([id]).unwrap()
+      setDeleteConfirmId(null)
+    } catch (err) {
+      setDeleteError(err?.data?.message || 'Failed to delete expert. Please try again.')
+    }
   }
 
   const columns = [
@@ -166,7 +230,7 @@ export default function Experts() {
           <button onClick={(e) => openEdit(e, r)} className="rounded-lg p-1.5 text-ink-soft hover:bg-dusk-50 hover:text-ink" title="Edit Expert">
             <Pencil size={15} />
           </button>
-          <button onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(r.id) }} className="rounded-lg p-1.5 text-ink-soft hover:bg-rose-100 hover:text-rose-700" title="Delete Expert">
+          <button onClick={(e) => { e.stopPropagation(); setDeleteError(''); setDeleteConfirmId(r.id) }} className="rounded-lg p-1.5 text-ink-soft hover:bg-rose-100 hover:text-rose-700" title="Delete Expert">
             <Trash2 size={15} />
           </button>
         </div>
@@ -176,7 +240,16 @@ export default function Experts() {
 
   return (
     <div>
-      <PageHeader title="Experts" subtitle="Review documents, certificates, and profiles before experts go live." />
+      <PageHeader
+        title="Experts"
+        subtitle="Review documents, certificates, and profiles before experts go live."
+        action={
+          <Button onClick={openRegister}>
+            <UserPlus size={16} />
+            Register Expert
+          </Button>
+        }
+      />
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex gap-1 rounded-xl bg-canvas-alt p-1">
@@ -195,212 +268,53 @@ export default function Experts() {
         </div>
         <div className="relative">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-soft" />
-          <input placeholder="Search by name or skill" value={search} onChange={(e) => setSearch(e.target.value)} className={`${inputCls} w-64 pl-8`} />
+          <input placeholder="Search by name or skill" value={search} onChange={(e) => setSearch(e.target.value)} className="w-64 rounded-lg border border-dusk-100 bg-canvas px-3 py-2 pl-8 text-sm text-ink placeholder:text-ink-soft/60 focus:border-dusk-500 focus:bg-white focus:outline-none" />
         </div>
       </div>
 
       <DataTable columns={columns} data={filtered} isLoading={isLoading} onRowClick={(r) => navigate(`/admin/experts/${r.id}`)} emptyMessage="No experts match this view." />
 
+      {/* Register Expert Modal */}
+      <Modal open={registerOpen} onClose={() => setRegisterOpen(false)} title="Register Expert" width="max-w-2xl">
+        <form onSubmit={handleRegister}>
+          <ExpertFormTabBar activeTab={registerTab} onChange={setRegisterTab} />
+
+          {registerError && (
+            <div className="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+              {registerError}
+            </div>
+          )}
+
+          <div className="max-h-[60vh] overflow-y-auto px-1 py-2">
+            <ExpertFormFields
+              tab={registerTab}
+              form={registerForm}
+              setForm={setRegisterForm}
+              includePassword
+            />
+          </div>
+
+          <div className="mt-6 flex justify-end gap-2 border-t border-dusk-50 pt-4">
+            <Button type="button" variant="ghost" onClick={() => setRegisterOpen(false)}>Cancel</Button>
+            <Button type="submit" disabled={isRegistering}>
+              {isRegistering ? 'Registering...' : 'Register Expert'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
       {/* Edit Expert Modal */}
       <Modal open={!!editingExpert} onClose={() => setEditingExpert(null)} title="Edit Expert Profile" width="max-w-2xl">
         <form onSubmit={handleUpdate}>
-          <div className="mb-4 flex border-b border-dusk-100">
-            {[
-              { key: 'basic', label: 'Basic' },
-              { key: 'professional', label: 'Professional' },
-              { key: 'philosophy', label: 'Philosophy' },
-              { key: 'location', label: 'Location' },
-              { key: 'media', label: 'Media' },
-            ].map((t) => (
-              <button
-                type="button"
-                key={t.key}
-                onClick={() => setEditTab(t.key)}
-                className={`border-b-2 px-3 py-2 text-xs font-semibold transition-colors ${
-                  editTab === t.key
-                    ? 'border-dusk-700 text-dusk-700 bg-dusk-50/50'
-                    : 'border-transparent text-ink-soft hover:text-ink'
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
+          <ExpertFormTabBar activeTab={editTab} onChange={setEditTab} />
 
           <div className="max-h-[60vh] overflow-y-auto px-1 py-2">
-            {editTab === 'basic' && (
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="First Name">
-                    <input required className={inputCls} value={form.first_name} onChange={(e) => setForm({ ...form, first_name: e.target.value })} />
-                  </Field>
-                  <Field label="Last Name">
-                    <input className={inputCls} value={form.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} />
-                  </Field>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="Email">
-                    <input type="email" required className={inputCls} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-                  </Field>
-                  <Field label="Phone/Mobile">
-                    <input required className={inputCls} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-                  </Field>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="Alternate Phone">
-                    <input className={inputCls} value={form.alternate_phone} onChange={(e) => setForm({ ...form, alternate_phone: e.target.value })} />
-                  </Field>
-                  <Field label="WhatsApp Number">
-                    <input className={inputCls} value={form.whatsapp_number} onChange={(e) => setForm({ ...form, whatsapp_number: e.target.value })} />
-                  </Field>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="Verification Status">
-                    <select className={inputCls} value={form.verification_status} onChange={(e) => setForm({ ...form, verification_status: e.target.value })}>
-                      <option value="PENDING">Pending Review</option>
-                      <option value="VERIFIED">Approved</option>
-                      <option value="NEEDS_CHANGES">Needs Changes</option>
-                      <option value="REJECTED">Rejected</option>
-                    </select>
-                  </Field>
-                  <label className="flex items-center gap-2.5 pt-7">
-                    <input
-                      type="checkbox"
-                      className="h-4 w-4 rounded border-dusk-300 text-dusk-700 focus:ring-dusk-500"
-                      checked={form.profile_completed}
-                      onChange={(e) => setForm({ ...form, profile_completed: e.target.checked })}
-                    />
-                    <span className="text-sm font-medium text-ink">Profile Completed</span>
-                  </label>
-                </div>
-              </div>
-            )}
-
-            {editTab === 'professional' && (
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="Professional Title">
-                    <input className={inputCls} value={form.professional_title} onChange={(e) => setForm({ ...form, professional_title: e.target.value })} placeholder="e.g. Master Yogi" />
-                  </Field>
-                  <Field label="Profession">
-                    <input className={inputCls} value={form.profession} onChange={(e) => setForm({ ...form, profession: e.target.value })} placeholder="e.g. Yoga Teacher" />
-                  </Field>
-                </div>
-                <div className="grid grid-cols-3 gap-3">
-                  <Field label="Experience (Years)">
-                    <input type="number" className={inputCls} value={form.experience_years} onChange={(e) => setForm({ ...form, experience_years: e.target.value })} placeholder="e.g. 5" />
-                  </Field>
-                  <Field label="Consultation Fee (₹)">
-                    <input type="number" className={inputCls} value={form.consultation_fee} onChange={(e) => setForm({ ...form, consultation_fee: e.target.value })} placeholder="e.g. 500" />
-                  </Field>
-                  <Field label="Specialization">
-                    <input className={inputCls} value={form.specialization} onChange={(e) => setForm({ ...form, specialization: e.target.value })} placeholder="e.g. Vinyasa Yoga" />
-                  </Field>
-                </div>
-                <Field label="Education">
-                  <input className={inputCls} value={form.education} onChange={(e) => setForm({ ...form, education: e.target.value })} placeholder="e.g. B.Sc in Yogic Sciences" />
-                </Field>
-                <Field label="Languages (comma separated)">
-                  <input className={inputCls} value={form.languagesArray} onChange={(e) => setForm({ ...form, languagesArray: e.target.value })} placeholder="e.g. English, Hindi, Spanish" />
-                </Field>
-                {/* <Field label="Certifications (comma separated)">
-                  <textarea rows={2} className={inputCls} value={form.certificationsValue} onChange={(e) => setForm({ ...form, certificationsValue: e.target.value })} placeholder="e.g. Yoga Alliance RYT-200, Reiki Level II" />
-                </Field> */}
-              </div>
-            )}
-
-            {editTab === 'philosophy' && (
-              <div className="space-y-3">
-                <Field label="Bio (Short Summary)">
-                  <textarea rows={2} className={inputCls} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} placeholder="Brief summary for list views..." />
-                </Field>
-                <Field label="About Me (Full Story)">
-                  <textarea rows={3} className={inputCls} value={form.about} onChange={(e) => setForm({ ...form, about: e.target.value })} placeholder="Detailed biography..." />
-                </Field>
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="Why Started">
-                    <textarea rows={3} className={inputCls} value={form.why_started} onChange={(e) => setForm({ ...form, why_started: e.target.value })} placeholder="What inspired you to start..." />
-                  </Field>
-                  <Field label="Mission">
-                    <textarea rows={3} className={inputCls} value={form.mission} onChange={(e) => setForm({ ...form, mission: e.target.value })} placeholder="Your professional mission..." />
-                  </Field>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="Client Approach">
-                    <textarea rows={3} className={inputCls} value={form.client_approach} onChange={(e) => setForm({ ...form, client_approach: e.target.value })} placeholder="How you approach working with clients..." />
-                  </Field>
-                  <Field label="Uniqueness">
-                    <textarea rows={3} className={inputCls} value={form.uniqueness} onChange={(e) => setForm({ ...form, uniqueness: e.target.value })} placeholder="What makes your sessions unique..." />
-                  </Field>
-                </div>
-              </div>
-            )}
-
-            {editTab === 'location' && (
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Country">
-                  <input className={inputCls} value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })} placeholder="e.g. India" />
-                </Field>
-                <Field label="Timezone">
-                  <input className={inputCls} value={form.timezone} onChange={(e) => setForm({ ...form, timezone: e.target.value })} placeholder="e.g. Asia/Kolkata" />
-                </Field>
-                <Field label="City">
-                  <input className={inputCls} value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} placeholder="e.g. Mumbai" />
-                </Field>
-                <Field label="State">
-                  <input className={inputCls} value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} placeholder="e.g. Maharashtra" />
-                </Field>
-              </div>
-            )}
-
-            {editTab === 'media' && (
-              <div className="space-y-4">
-                <div>
-                  <span className="mb-1.5 block text-sm font-medium text-ink font-sans">Profile Image (Avatar)</span>
-                  {form.profile_image && (
-                    <img src={form.profile_image} alt="Profile Preview" className="mb-2 h-20 w-20 rounded-2xl object-cover border border-dusk-100" />
-                  )}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className={inputCls}
-                    onChange={(e) => {
-                      const file = e.target.files?.[0]
-                      if (file) {
-                        const reader = new FileReader()
-                        reader.onloadend = () => setForm(prev => ({ ...prev, profile_image: reader.result, profile_image_file: file }))
-                        reader.readAsDataURL(file)
-                      }
-                    }}
-                  />
-                  <Field label="Or paste Image URL" className="mt-2">
-                    <input className={inputCls} value={form.profile_image} onChange={(e) => setForm({ ...form, profile_image: e.target.value })} placeholder="https://..." />
-                  </Field>
-                </div>
-                <div className="border-t border-dusk-50 pt-3">
-                  <span className="mb-1.5 block text-sm font-medium text-ink font-sans">Cover Image</span>
-                  {form.cover_image && (
-                    <img src={form.cover_image} alt="Cover Preview" className="mb-2 h-24 w-full rounded-xl object-cover border border-dusk-100" />
-                  )}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className={inputCls}
-                    onChange={(e) => {
-                      const file = e.target.files?.[0]
-                      if (file) {
-                        const reader = new FileReader()
-                        reader.onloadend = () => setForm(prev => ({ ...prev, cover_image: reader.result, cover_image_file: file }))
-                        reader.readAsDataURL(file)
-                      }
-                    }}
-                  />
-                  <Field label="Or paste Cover URL" className="mt-2">
-                    <input className={inputCls} value={form.cover_image} onChange={(e) => setForm({ ...form, cover_image: e.target.value })} placeholder="https://..." />
-                  </Field>
-                </div>
-              </div>
-            )}
+            <ExpertFormFields
+              tab={editTab}
+              form={form}
+              setForm={setForm}
+              includeAdminFields
+            />
           </div>
 
           <div className="mt-6 flex justify-end gap-2 border-t border-dusk-50 pt-4">
@@ -411,8 +325,13 @@ export default function Experts() {
       </Modal>
 
       {/* Delete Confirmation Modal */}
-      <Modal open={!!deleteConfirmId} onClose={() => setDeleteConfirmId(null)} title="Delete Expert">
+      <Modal open={!!deleteConfirmId} onClose={() => { setDeleteConfirmId(null); setDeleteError('') }} title="Delete Expert">
         <p className="text-sm text-ink-soft">Are you sure you want to delete this expert? This action cannot be undone.</p>
+        {deleteError && (
+          <div className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+            {deleteError}
+          </div>
+        )}
         <div className="mt-5 flex justify-end gap-2">
           <Button variant="ghost" onClick={() => setDeleteConfirmId(null)}>Cancel</Button>
           <Button variant="danger" disabled={isDeleting} onClick={(e) => handleDelete(e, deleteConfirmId)}>

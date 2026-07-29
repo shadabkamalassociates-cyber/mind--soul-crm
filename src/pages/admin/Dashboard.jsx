@@ -31,7 +31,7 @@ export default function Dashboard() {
 
   return (
     <div>
-      <PageHeader title="Dashboard" subtitle="A pulse on approvals, bookings, and revenue across SoulSensei." />
+      <PageHeader title="Dashboard" subtitle="A pulse on approvals, bookings, and revenue across Cosmicguruji." />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Gross Revenue (7d)" value={currency(totalRevenue)} icon={IndianRupee} accent="dusk" trend="+12.4% vs last week" />

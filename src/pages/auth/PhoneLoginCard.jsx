@@ -76,7 +76,7 @@ export default function PhoneLoginCard({
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-marigold-300">
               <Icon size={18} />
             </div>
-            <span className="font-display text-lg font-semibold">SoulSensei</span>
+            <span className="font-display text-lg font-semibold">Cosmicguruji</span>
           </div>
           <div className="relative">
             <p className="font-display text-2xl font-medium leading-snug">"{quote}"</p>

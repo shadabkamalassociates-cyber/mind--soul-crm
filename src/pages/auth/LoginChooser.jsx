@@ -9,7 +9,7 @@ export default function LoginChooser() {
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-marigold-300">
             <Sparkles size={22} />
           </div>
-          <h1 className="mt-3 font-display text-2xl font-semibold text-white">SoulSensei CRM</h1>
+          <h1 className="mt-3 font-display text-2xl font-semibold text-white">Cosmicguruji CRM</h1>
           <p className="mt-1 text-sm text-dusk-100">Choose your workspace to continue.</p>
         </div>
 

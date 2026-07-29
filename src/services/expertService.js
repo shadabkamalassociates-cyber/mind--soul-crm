@@ -218,6 +218,7 @@ export const expertApi = createApi({
         method: 'POST',
         body: body.formData || body,
       }),
+      invalidatesTags: ['Expert'],
     }),
   }),
 })
