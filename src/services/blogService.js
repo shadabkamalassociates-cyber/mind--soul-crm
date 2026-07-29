@@ -1,98 +1,98 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export const blogApi = createApi({
-  reducerPath: 'blogApi',
+  reducerPath: "blogApi",
   baseQuery: fetchBaseQuery({
-    credentials: 'include',
-    baseUrl: '/api',
+    credentials: "include",
+    baseUrl: "/api",
   }),
-  tagTypes: ['Blog', 'BlogCategory'],
+  tagTypes: ["Blog", "BlogCategory"],
   endpoints: (builder) => ({
     getBlogs: builder.query({
-      query: () => '/blogs/get-all',
+      query: () => "/blogs/get-all",
       transformResponse: (response) => {
         if (response?.success && Array.isArray(response.data)) {
-          return response.data
+          return response.data;
         }
-        return response?.data || []
+        return response?.data || [];
       },
-      providesTags: ['Blog'],
+      providesTags: ["Blog"],
     }),
     getBlogCategories: builder.query({
-      query: () => '/blogs/get-categories',
+      query: () => "/blogs/get-categories",
       transformResponse: (response) => {
         if (response?.success && Array.isArray(response.data)) {
-          return response.data
+          return response.data;
         }
-        return response?.data || []
+        return response?.data || [];
       },
-      providesTags: ['BlogCategory'],
+      providesTags: ["BlogCategory"],
     }),
     getBlogCategoryById: builder.query({
       query: (id) => `/blogs/get-category-by-id/${id}`,
       transformResponse: (response) => {
-        return response?.data || response
+        return response?.data || response;
       },
-      providesTags: (result, error, id) => [{ type: 'BlogCategory', id }],
+      providesTags: (result, error, id) => [{ type: "BlogCategory", id }],
     }),
     getBlogsByCategory: builder.query({
       query: (categoryId) => `/blogs/get-blogs-by-category/${categoryId}`,
       transformResponse: (response) => {
         if (response?.success && Array.isArray(response.data)) {
-          return response.data
+          return response.data;
         }
-        return response?.data || []
+        return response?.data || [];
       },
-      providesTags: ['Blog'],
+      providesTags: ["Blog"],
     }),
     createBlog: builder.mutation({
       query: (formData) => ({
-        url: '/blogs/create',
-        method: 'POST',
+        url: "/blogs/create",
+        method: "POST",
         body: formData, // FormData instance
       }),
-      invalidatesTags: ['Blog'],
+      invalidatesTags: ["Blog"],
     }),
     updateBlog: builder.mutation({
       query: ({ id, formData }) => ({
         url: `/blogs/update-blog/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body: formData, // FormData instance
       }),
-      invalidatesTags: ['Blog'],
+      invalidatesTags: ["Blog"],
     }),
     deleteBlog: builder.mutation({
       query: (id) => ({
         url: `/blogs/delete-blog/${id}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['Blog'],
+      invalidatesTags: ["Blog"],
     }),
     createBlogCategory: builder.mutation({
-      query: (body) => ({
-        url: '/blogs/create-category',
-        method: 'POST',
-        body, // JSON — no multer on this route, req.body is read directly
+      query: (formData) => ({
+        url: "/blogs/create-category",
+        method: "POST",
+        body: formData,
       }),
-      invalidatesTags: ['BlogCategory'],
+      invalidatesTags: ["BlogCategory"],
     }),
     updateBlogCategory: builder.mutation({
-      query: ({ id, ...body }) => ({
+      query: ({ id, formData }) => ({
         url: `/blogs/update-category/${id}`,
-        method: 'PUT',
-        body, // JSON — no multer on this route, req.body is read directly
+        method: "PUT",
+        body: formData,
       }),
-      invalidatesTags: ['BlogCategory'],
+      invalidatesTags: ["BlogCategory"],
     }),
     deleteBlogCategory: builder.mutation({
       query: (id) => ({
         url: `/blogs/delete-category/${id}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['BlogCategory'],
+      invalidatesTags: ["BlogCategory"],
     }),
   }),
-})
+});
 
 export const {
   useGetBlogsQuery,
@@ -105,4 +105,4 @@ export const {
   useCreateBlogCategoryMutation,
   useUpdateBlogCategoryMutation,
   useDeleteBlogCategoryMutation,
-} = blogApi
+} = blogApi;

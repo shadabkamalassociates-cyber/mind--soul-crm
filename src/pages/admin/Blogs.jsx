@@ -1,264 +1,307 @@
-import { useState } from 'react'
-import { useSelector } from 'react-redux'
-import { Plus, Pencil, Trash2, BookOpen, User, Tag, Calendar, Image as ImageIcon, ChevronDown, ChevronUp, Star, Eye, Globe } from 'lucide-react'
+import { useState } from "react";
+import { useSelector } from "react-redux";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  BookOpen,
+  User,
+  Tag,
+  Calendar,
+  Image as ImageIcon,
+  ChevronDown,
+  ChevronUp,
+  Star,
+  Eye,
+  Globe,
+} from "lucide-react";
 import {
   useGetBlogsQuery,
   useGetBlogCategoriesQuery,
   useCreateBlogMutation,
   useUpdateBlogMutation,
   useDeleteBlogMutation,
-} from '../../services/blogService'
-import { PageHeader, Button, Field, inputCls, EmptyState, Spinner } from '../../components/Common'
-import DataTable from '../../components/DataTable'
-import Modal from '../../components/Modal'
-import Badge from '../../components/Badge'
-import RichTextEditor from '../../components/RichTextEditor'
-import { formatDateTime } from '../../utils/status'
+} from "../../services/blogService";
+import {
+  PageHeader,
+  Button,
+  Field,
+  inputCls,
+  EmptyState,
+  Spinner,
+} from "../../components/Common";
+import DataTable from "../../components/DataTable";
+import Modal from "../../components/Modal";
+import Badge from "../../components/Badge";
+import RichTextEditor from "../../components/RichTextEditor";
+import { formatDateTime } from "../../utils/status";
 
 const emptyForm = {
-  category_id: '',
-  author_id: '',
-  title: '',
-  slug: '',
-  short_description: '',
-  content: '',
-  status: 'draft',
+  category_id: "",
+  author_id: "",
+  title: "",
+  slug: "",
+  short_description: "",
+  content: "",
+  status: "draft",
   is_featured: false,
-  meta_title: '',
-  meta_description: '',
-  meta_keywords: '',
-  published_at: '',
-}
+  meta_title: "",
+  meta_description: "",
+  meta_keywords: "",
+  published_at: "",
+};
 
 export default function Blogs() {
-  const user = useSelector((s) => s.auth.user)
-  const { data: blogs = [], isLoading: isBlogsLoading } = useGetBlogsQuery()
-  const { data: categories = [], isLoading: isCategoriesLoading } = useGetBlogCategoriesQuery()
-  
-  const [createBlog] = useCreateBlogMutation()
-  const [updateBlog] = useUpdateBlogMutation()
-  const [deleteBlog] = useDeleteBlogMutation()
+  const user = useSelector((s) => s.auth.user);
+  const { data: blogs = [], isLoading: isBlogsLoading } = useGetBlogsQuery();
+  const { data: categories = [], isLoading: isCategoriesLoading } =
+    useGetBlogCategoriesQuery();
 
-  const [modalOpen, setModalOpen] = useState(false)
-  const [editing, setEditing] = useState(null)
-  const [form, setForm] = useState(emptyForm)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [showSeo, setShowSeo] = useState(false)
+  const [createBlog] = useCreateBlogMutation();
+  const [updateBlog] = useUpdateBlogMutation();
+  const [deleteBlog] = useDeleteBlogMutation();
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [form, setForm] = useState(emptyForm);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSeo, setShowSeo] = useState(false);
 
   // Image Upload States
-  const [featuredImageFile, setFeaturedImageFile] = useState(null)
-  const [featuredImagePreview, setFeaturedImagePreview] = useState('')
-  const [bannerImageFile, setBannerImageFile] = useState(null)
-  const [bannerImagePreview, setBannerImagePreview] = useState('')
+  const [featuredImageFile, setFeaturedImageFile] = useState(null);
+  const [featuredImagePreview, setFeaturedImagePreview] = useState("");
+  const [bannerImageFile, setBannerImageFile] = useState(null);
+  const [bannerImagePreview, setBannerImagePreview] = useState("");
 
   const openAdd = () => {
-    setEditing(null)
-    setForm(emptyForm)
-    setFeaturedImageFile(null)
-    setFeaturedImagePreview('')
-    setBannerImageFile(null)
-    setBannerImagePreview('')
-    setShowSeo(false)
-    setModalOpen(true)
-  }
+    setEditing(null);
+    setForm(emptyForm);
+    setFeaturedImageFile(null);
+    setFeaturedImagePreview("");
+    setBannerImageFile(null);
+    setBannerImagePreview("");
+    setShowSeo(false);
+    setModalOpen(true);
+  };
 
   const openEdit = (blog) => {
-    setEditing(blog)
-    
+    setEditing(blog);
+
     // Format published_at for datetime-local input (YYYY-MM-DDThh:mm)
-    let formattedPubDate = ''
+    let formattedPubDate = "";
     if (blog.published_at) {
-      const date = new Date(blog.published_at)
-      formattedPubDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+      const date = new Date(blog.published_at);
+      formattedPubDate = new Date(
+        date.getTime() - date.getTimezoneOffset() * 60000,
+      )
         .toISOString()
-        .slice(0, 16)
+        .slice(0, 16);
     }
 
     setForm({
-      category_id: blog.category_id || '',
-      author_id: blog.author_id || '',
-      title: blog.title || '',
-      slug: blog.slug || '',
-      short_description: blog.short_description || '',
-      content: blog.content || '',
-      status: blog.status || 'draft',
+      category_id: blog.category_id || "",
+      author_id: blog.author_id || "",
+      title: blog.title || "",
+      slug: blog.slug || "",
+      short_description: blog.short_description || "",
+      content: blog.content || "",
+      status: blog.status || "draft",
       is_featured: !!blog.is_featured,
-      meta_title: blog.meta_title || '',
-      meta_description: blog.meta_description || '',
-      meta_keywords: blog.meta_keywords || '',
+      meta_title: blog.meta_title || "",
+      meta_description: blog.meta_description || "",
+      meta_keywords: blog.meta_keywords || "",
       published_at: formattedPubDate,
-    })
+    });
 
-    setFeaturedImageFile(null)
-    setFeaturedImagePreview(blog.featured_image || '')
-    setBannerImageFile(null)
-    setBannerImagePreview(blog.banner_image || '')
-    setShowSeo(false)
-    setModalOpen(true)
-  }
+    setFeaturedImageFile(null);
+    setFeaturedImagePreview(blog.featured_image || "");
+    setBannerImageFile(null);
+    setBannerImagePreview(blog.banner_image || "");
+    setShowSeo(false);
+    setModalOpen(true);
+  };
 
   const handleTitleChange = (e) => {
-    const titleVal = e.target.value
+    const titleVal = e.target.value;
     const slugVal = titleVal
       .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '') // remove special characters
-      .replace(/\s+/g, '-')         // replace spaces with hyphens
-      .replace(/-+/g, '-')          // replace multiple hyphens with single hyphen
-      .trim()
+      .replace(/[^a-z0-9\s-]/g, "") // remove special characters
+      .replace(/\s+/g, "-") // replace spaces with hyphens
+      .replace(/-+/g, "-") // replace multiple hyphens with single hyphen
+      .trim();
 
     setForm((prev) => ({
       ...prev,
       title: titleVal,
       slug: slugVal,
-    }))
-  }
+    }));
+  };
 
   const handleFileChange = (e, setFile, setPreview) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      setFile(file)
-      const reader = new FileReader()
+      setFile(file);
+      const reader = new FileReader();
       reader.onloadend = () => {
-        setPreview(reader.result)
-      }
-      reader.readAsDataURL(file)
+        setPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
     }
-  }
+  };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to permanently delete this blog post?')) {
+    if (
+      window.confirm(
+        "Are you sure you want to permanently delete this blog post?",
+      )
+    ) {
       try {
-        await deleteBlog(id).unwrap()
+        await deleteBlog(id).unwrap();
       } catch (err) {
-        alert(err?.data?.message || 'Failed to delete blog post')
+        alert(err?.data?.message || "Failed to delete blog post");
       }
     }
-  }
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    console.log("form", form);
 
     // Prepare Multipart FormData Payload
-    const formData = new FormData()
-    formData.append('title', form.title)
-    formData.append('slug', form.slug)
-    formData.append('short_description', form.short_description)
-    formData.append('content', form.content)
-    formData.append('status', form.status)
-    formData.append('is_featured', String(form.is_featured))
+    const formData = new FormData();
+    formData.append("title", form.title);
+    formData.append("slug", form.slug);
+    formData.append("short_description", form.short_description);
+    formData.append("content", form.content);
+    formData.append("status", form.status);
+    formData.append("is_featured", String(form.is_featured));
 
     if (form.category_id) {
-      formData.append('category_id', "c6f58eee-4732-41e7-8b38-e896def1c75d")
+      formData.append("category_id", form.category_id);
     }
-    
-    // Check if author_id is a valid integer before appending (UUIDs will be ignored to prevent DB crash)
+
+    // Append author_id (which might be a string/UUID admin_id)
     if (editing) {
-      if (form.author_id && !isNaN(Number(form.author_id))) {
-        formData.append('author_id', form.author_id)
+      if (form.author_id) {
+        formData.append("author_id", form.author_id);
       }
     } else {
-      if (user?.id && !isNaN(Number(user.id))) {
-        formData.append('author_id', user.id)
+      if (user?.id) {
+        formData.append("author_id", user.id);
       }
     }
     if (form.published_at) {
-      formData.append('published_at', new Date(form.published_at).toISOString())
+      formData.append(
+        "published_at",
+        new Date(form.published_at).toISOString(),
+      );
     }
     if (form.meta_title) {
-      formData.append('meta_title', form.meta_title)
+      formData.append("meta_title", form.meta_title);
     }
     if (form.meta_description) {
-      formData.append('meta_description', form.meta_description)
+      formData.append("meta_description", form.meta_description);
     }
     if (form.meta_keywords) {
-      formData.append('meta_keywords', form.meta_keywords)
+      formData.append("meta_keywords", form.meta_keywords);
     }
 
     if (featuredImageFile) {
-      formData.append('featured_image', featuredImageFile)
+      formData.append("featured_image", featuredImageFile);
     }
     if (bannerImageFile) {
-      formData.append('banner_image', bannerImageFile)
+      formData.append("banner_image", bannerImageFile);
     }
 
     try {
       if (editing) {
-        await updateBlog({ id: editing.id, formData }).unwrap()
+        await updateBlog({ id: editing.id, formData }).unwrap();
       } else {
-        await createBlog(formData).unwrap()
+        await createBlog(formData).unwrap();
       }
-      setModalOpen(false)
+      setModalOpen(false);
     } catch (err) {
-      alert(err?.data?.message || 'Failed to save blog post')
+      alert(err?.data?.message || "Failed to save blog post");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const columns = [
     {
-      key: 'featured_image',
-      header: 'Cover',
-      render: (r) => (
+      key: "featured_image",
+      header: "Cover",
+      render: (r) =>
         r.featured_image ? (
           <img
             src={r.featured_image}
             alt=""
             className="h-10 w-16 rounded-lg object-cover border border-dusk-100 bg-canvas-alt shadow-sm"
             onError={(e) => {
-              e.target.src = 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=150&auto=format&fit=crop&q=60'
+              e.target.src =
+                "https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=150&auto=format&fit=crop&q=60";
             }}
           />
         ) : (
           <div className="flex h-10 w-16 items-center justify-center rounded-lg bg-canvas-alt border border-dusk-50 text-ink-soft">
             <BookOpen size={16} />
           </div>
-        )
-      ),
+        ),
     },
     {
-      key: 'title',
-      header: 'Article Title',
+      key: "title",
+      header: "Article Title",
       render: (r) => (
         <div className="max-w-xs md:max-w-md">
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-ink line-clamp-1">{r.title}</span>
+            <span className="font-semibold text-ink line-clamp-1">
+              {r.title}
+            </span>
             {r.is_featured && (
               <span className="flex items-center gap-0.5 rounded bg-marigold-100 px-1 py-0.2 text-[9px] font-bold text-marigold-800 uppercase tracking-wide">
                 <Star size={8} fill="currentColor" /> Featured
               </span>
             )}
           </div>
-          <p className="mt-0.5 text-xs text-ink-soft line-clamp-1">{r.short_description || 'No description provided.'}</p>
+          <p className="mt-0.5 text-xs text-ink-soft line-clamp-1">
+            {r.short_description || "No description provided."}
+          </p>
         </div>
       ),
     },
     {
-      key: 'category_id',
-      header: 'Category',
+      key: "category_id",
+      header: "Category",
       render: (r) => {
-        const cat = categories.find((c) => String(c.id) === String(r.category_id))
+        const cat = categories.find(
+          (c) => String(c.id) === String(r.category_id),
+        );
         return (
           <span className="inline-flex items-center gap-1.5 rounded-full bg-dusk-50 px-2.5 py-0.5 text-xs font-medium text-ink-soft">
             <Tag size={11} />
-            {cat ? cat.name : (r.category_id ? `Cat ID: ${r.category_id}` : 'Uncategorized')}
+            {cat
+              ? cat.name
+              : r.category_id
+                ? `Cat ID: ${r.category_id}`
+                : "Uncategorized"}
           </span>
-        )
+        );
       },
     },
     {
-      key: 'status',
-      header: 'Status',
+      key: "status",
+      header: "Status",
       render: (r) => (
-        <Badge tone={r.status === 'published' ? 'approved' : 'neutral'}>
-          {r.status === 'published' ? 'Published' : 'Draft'}
+        <Badge tone={r.status === "published" ? "approved" : "neutral"}>
+          {r.status === "published" ? "Published" : "Draft"}
         </Badge>
       ),
     },
     {
-      key: 'views',
-      header: 'Views',
+      key: "views",
+      header: "Views",
       render: (r) => (
         <span className="flex items-center gap-1 text-xs text-ink-soft">
           <Eye size={13} />
@@ -267,8 +310,8 @@ export default function Blogs() {
       ),
     },
     {
-      key: 'created_at',
-      header: 'Date Created',
+      key: "created_at",
+      header: "Date Created",
       render: (r) => (
         <span className="flex items-center gap-1.5 text-xs text-ink-soft">
           <Calendar size={13} />
@@ -277,8 +320,8 @@ export default function Blogs() {
       ),
     },
     {
-      key: 'actions',
-      header: '',
+      key: "actions",
+      header: "",
       render: (r) => (
         <div className="flex items-center justify-end gap-1">
           <button
@@ -298,7 +341,7 @@ export default function Blogs() {
         </div>
       ),
     },
-  ]
+  ];
 
   return (
     <div className="space-y-6">
@@ -330,7 +373,7 @@ export default function Blogs() {
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={editing ? 'Edit Blog Article' : 'Write Blog Article'}
+        title={editing ? "Edit Blog Article" : "Write Blog Article"}
         width="max-w-4xl"
       >
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -361,11 +404,13 @@ export default function Blogs() {
               <select
                 className={inputCls}
                 value={form.category_id}
-                onChange={(e) => setForm({ ...form, category_id: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, category_id: e.target.value })
+                }
               >
                 <option value="">Select Category</option>
                 {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
+                  <option key={cat.id} value={cat.uuid}>
                     {cat.name}
                   </option>
                 ))}
@@ -385,12 +430,17 @@ export default function Blogs() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Field label="Publish Date" hint="Schedule post release date and time">
+            <Field
+              label="Publish Date"
+              hint="Schedule post release date and time"
+            >
               <input
                 type="datetime-local"
                 className={inputCls}
                 value={form.published_at}
-                onChange={(e) => setForm({ ...form, published_at: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, published_at: e.target.value })
+                }
               />
             </Field>
 
@@ -400,9 +450,13 @@ export default function Blogs() {
                   type="checkbox"
                   className="rounded border-dusk-100 text-dusk-700 focus:ring-dusk-500 h-4.5 w-4.5 cursor-pointer"
                   checked={form.is_featured}
-                  onChange={(e) => setForm({ ...form, is_featured: e.target.checked })}
+                  onChange={(e) =>
+                    setForm({ ...form, is_featured: e.target.checked })
+                  }
                 />
-                <span className="text-sm font-medium text-ink">Feature this article on dashboard</span>
+                <span className="text-sm font-medium text-ink">
+                  Feature this article on dashboard
+                </span>
               </label>
             </div>
           </div>
@@ -410,7 +464,9 @@ export default function Blogs() {
           {/* Image Uploads */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <span className="mb-1.5 block text-sm font-medium text-ink">Featured Image (Cover Photo)</span>
+              <span className="mb-1.5 block text-sm font-medium text-ink">
+                Featured Image (Cover Photo)
+              </span>
               <label className="flex h-36 w-full cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-dusk-200 bg-canvas hover:bg-dusk-50/50 overflow-hidden transition-all relative">
                 {featuredImagePreview ? (
                   <img
@@ -420,22 +476,37 @@ export default function Blogs() {
                   />
                 ) : (
                   <div className="text-center p-3">
-                    <ImageIcon size={22} className="mx-auto text-ink-soft mb-1" />
-                    <span className="mt-1 block text-xs text-ink font-medium">Upload Featured Image</span>
-                    <span className="block text-[10px] text-ink-soft mt-0.5">JPG, PNG or WEBP</span>
+                    <ImageIcon
+                      size={22}
+                      className="mx-auto text-ink-soft mb-1"
+                    />
+                    <span className="mt-1 block text-xs text-ink font-medium">
+                      Upload Featured Image
+                    </span>
+                    <span className="block text-[10px] text-ink-soft mt-0.5">
+                      JPG, PNG or WEBP
+                    </span>
                   </div>
                 )}
                 <input
                   type="file"
                   accept="image/*"
                   className="hidden"
-                  onChange={(e) => handleFileChange(e, setFeaturedImageFile, setFeaturedImagePreview)}
+                  onChange={(e) =>
+                    handleFileChange(
+                      e,
+                      setFeaturedImageFile,
+                      setFeaturedImagePreview,
+                    )
+                  }
                 />
               </label>
             </div>
 
             <div>
-              <span className="mb-1.5 block text-sm font-medium text-ink">Banner Image (Inside Page Header)</span>
+              <span className="mb-1.5 block text-sm font-medium text-ink">
+                Banner Image (Inside Page Header)
+              </span>
               <label className="flex h-36 w-full cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-dusk-200 bg-canvas hover:bg-dusk-50/50 overflow-hidden transition-all relative">
                 {bannerImagePreview ? (
                   <img
@@ -445,33 +516,53 @@ export default function Blogs() {
                   />
                 ) : (
                   <div className="text-center p-3">
-                    <ImageIcon size={22} className="mx-auto text-ink-soft mb-1" />
-                    <span className="mt-1 block text-xs text-ink font-medium">Upload Banner Image</span>
-                    <span className="block text-[10px] text-ink-soft mt-0.5">JPG, PNG or WEBP</span>
+                    <ImageIcon
+                      size={22}
+                      className="mx-auto text-ink-soft mb-1"
+                    />
+                    <span className="mt-1 block text-xs text-ink font-medium">
+                      Upload Banner Image
+                    </span>
+                    <span className="block text-[10px] text-ink-soft mt-0.5">
+                      JPG, PNG or WEBP
+                    </span>
                   </div>
                 )}
                 <input
                   type="file"
                   accept="image/*"
                   className="hidden"
-                  onChange={(e) => handleFileChange(e, setBannerImageFile, setBannerImagePreview)}
+                  onChange={(e) =>
+                    handleFileChange(
+                      e,
+                      setBannerImageFile,
+                      setBannerImagePreview,
+                    )
+                  }
                 />
               </label>
             </div>
           </div>
 
-          <Field label="Short Description" hint="Brief summary shown on grids and lists">
+          <Field
+            label="Short Description"
+            hint="Brief summary shown on grids and lists"
+          >
             <textarea
               rows={2}
               className={`${inputCls} resize-y`}
               value={form.short_description}
-              onChange={(e) => setForm({ ...form, short_description: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, short_description: e.target.value })
+              }
               placeholder="e.g. A comprehensive guide exploring self-care methods and somatic exercises..."
             />
           </Field>
 
           <div>
-            <span className="mb-1.5 block text-sm font-medium text-ink">Blog Content</span>
+            <span className="mb-1.5 block text-sm font-medium text-ink">
+              Blog Content
+            </span>
             <RichTextEditor
               value={form.content}
               onChange={(val) => setForm({ ...form, content: val })}
@@ -499,7 +590,9 @@ export default function Blogs() {
                   <input
                     className={inputCls}
                     value={form.meta_title}
-                    onChange={(e) => setForm({ ...form, meta_title: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, meta_title: e.target.value })
+                    }
                     placeholder="SEO title tag value"
                   />
                 </Field>
@@ -508,7 +601,9 @@ export default function Blogs() {
                   <input
                     className={inputCls}
                     value={form.meta_keywords}
-                    onChange={(e) => setForm({ ...form, meta_keywords: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, meta_keywords: e.target.value })
+                    }
                     placeholder="e.g. child healing, self care, trauma release"
                   />
                 </Field>
@@ -518,7 +613,9 @@ export default function Blogs() {
                     rows={2}
                     className={`${inputCls} resize-y`}
                     value={form.meta_description}
-                    onChange={(e) => setForm({ ...form, meta_description: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, meta_description: e.target.value })
+                    }
                     placeholder="SEO description tag meta value"
                   />
                 </Field>
@@ -528,21 +625,25 @@ export default function Blogs() {
 
           {/* Form Actions */}
           <div className="flex justify-end gap-2 pt-4 border-t border-dusk-50">
-            <Button type="button" variant="ghost" onClick={() => setModalOpen(false)}>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setModalOpen(false)}
+            >
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? (
                 <Spinner className="border-t-white border-white/30" />
               ) : editing ? (
-                'Save Changes'
+                "Save Changes"
               ) : (
-                'Publish Blog'
+                "Publish Blog"
               )}
             </Button>
           </div>
         </form>
       </Modal>
     </div>
-  )
+  );
 }

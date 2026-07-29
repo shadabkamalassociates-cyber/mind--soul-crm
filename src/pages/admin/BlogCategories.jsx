@@ -1,153 +1,175 @@
-import { useState } from 'react'
-import { Plus, Pencil, Trash2, FolderOpen, Image as ImageIcon, Calendar, Tag } from 'lucide-react'
+import { useState } from "react";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  FolderOpen,
+  Image as ImageIcon,
+  Calendar,
+  Tag,
+} from "lucide-react";
 import {
   useGetBlogCategoriesQuery,
   useCreateBlogCategoryMutation,
   useUpdateBlogCategoryMutation,
   useDeleteBlogCategoryMutation,
-} from '../../services/blogService'
-import { PageHeader, Button, Field, inputCls, EmptyState, Spinner } from '../../components/Common'
-import DataTable from '../../components/DataTable'
-import Modal from '../../components/Modal'
-import Badge from '../../components/Badge'
-import { formatDateTime } from '../../utils/status'
+} from "../../services/blogService";
+import {
+  PageHeader,
+  Button,
+  Field,
+  inputCls,
+  EmptyState,
+  Spinner,
+} from "../../components/Common";
+import DataTable from "../../components/DataTable";
+import Modal from "../../components/Modal";
+import Badge from "../../components/Badge";
+import { formatDateTime } from "../../utils/status";
 
 const emptyForm = {
-  name: '',
-  slug: '',
-  description: '',
-  image_url: '',
+  name: "",
+  slug: "",
+  description: "",
+  image_url: "",
   status: true,
-}
+};
 
 export default function BlogCategories() {
-  const { data: categories = [], isLoading: isCategoriesLoading } = useGetBlogCategoriesQuery()
-  
-  const [createCategory] = useCreateBlogCategoryMutation()
-  const [updateCategory] = useUpdateBlogCategoryMutation()
-  const [deleteCategory] = useDeleteBlogCategoryMutation()
+  const { data: categories = [], isLoading: isCategoriesLoading } =
+    useGetBlogCategoriesQuery();
 
-  const [modalOpen, setModalOpen] = useState(false)
-  const [editing, setEditing] = useState(null)
-  const [form, setForm] = useState(emptyForm)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [createCategory] = useCreateBlogCategoryMutation();
+  const [updateCategory] = useUpdateBlogCategoryMutation();
+  const [deleteCategory] = useDeleteBlogCategoryMutation();
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [form, setForm] = useState(emptyForm);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Image Upload States
-  const [imageFile, setImageFile] = useState(null)
-  const [imagePreview, setImagePreview] = useState('')
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
 
   const openAdd = () => {
-    setEditing(null)
-    setForm(emptyForm)
-    setImageFile(null)
-    setImagePreview('')
-    setModalOpen(true)
-  }
+    setEditing(null);
+    setForm(emptyForm);
+    setImageFile(null);
+    setImagePreview("");
+    setModalOpen(true);
+  };
 
   const openEdit = (cat) => {
-    setEditing(cat)
+    setEditing(cat);
     setForm({
-      name: cat.name || '',
-      slug: cat.slug || '',
-      description: cat.description || '',
-      image_url: cat.image_url || '',
+      name: cat.name || "",
+      slug: cat.slug || "",
+      description: cat.description || "",
+      image_url: cat.image_url || "",
       status: cat.status !== false,
-    })
-    setImageFile(null)
-    setImagePreview(cat.image_url || '')
-    setModalOpen(true)
-  }
+    });
+    setImageFile(null);
+    setImagePreview(cat.image_url || "");
+    setModalOpen(true);
+  };
 
   const handleNameChange = (e) => {
-    const nameVal = e.target.value
+    const nameVal = e.target.value;
     const slugVal = nameVal
       .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '') // remove special characters
-      .replace(/\s+/g, '-')         // replace spaces with hyphens
-      .replace(/-+/g, '-')          // replace multiple hyphens
-      .trim()
+      .replace(/[^a-z0-9\s-]/g, "") // remove special characters
+      .replace(/\s+/g, "-") // replace spaces with hyphens
+      .replace(/-+/g, "-") // replace multiple hyphens
+      .trim();
 
     setForm((prev) => ({
       ...prev,
       name: nameVal,
       slug: slugVal,
-    }))
-  }
+    }));
+  };
 
   const handleFileChange = (e) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      setImageFile(file)
-      const reader = new FileReader()
+      setImageFile(file);
+      const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result)
-      }
-      reader.readAsDataURL(file)
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
     }
-  }
+  };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to permanently delete this category? Blogs linked to it will become uncategorized.')) {
+    if (
+      window.confirm(
+        "Are you sure you want to permanently delete this category? Blogs linked to it will become uncategorized.",
+      )
+    ) {
       try {
-        await deleteCategory(id).unwrap()
+        await deleteCategory(id).unwrap();
       } catch (err) {
-        alert(err?.data?.message || 'Failed to delete category')
+        alert(err?.data?.message || "Failed to delete category");
       }
     }
-  }
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+    e.preventDefault();
+    setIsSubmitting(true);
 
-    // The backend /create-category route has NO multer middleware — reads req.body directly.
-    // Must send plain JSON. image_url is stored as a text string (URL path), not a file.
-    const payload = {
-      name: form.name,
-      slug: form.slug,
-      description: form.description || null,
-      image_url: form.image_url || null,
-      status: form.status,
+    const formData = new FormData();
+    formData.append("name", form.name);
+    formData.append("slug", form.slug);
+    if (form.description) formData.append("description", form.description);
+    formData.append("status", String(form.status));
+    
+    if (imageFile) {
+      formData.append("image_url", imageFile);
+    } else if (form.image_url) {
+      formData.append("image_url", form.image_url);
     }
 
     try {
       if (editing) {
-        await updateCategory({ id: editing.id, ...payload }).unwrap()
+        await updateCategory({ id: editing.id, formData }).unwrap();
       } else {
-        await createCategory(payload).unwrap()
+        await createCategory(formData).unwrap();
       }
-      setModalOpen(false)
+      setModalOpen(false);
     } catch (err) {
-      alert(err?.data?.message || 'Failed to save category')
+      alert(err?.data?.message || "Failed to save category");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const columns = [
     {
-      key: 'image_url',
-      header: 'Icon/Cover',
-      render: (r) => (
+      key: "image_url",
+      header: "Icon/Cover",
+      render: (r) =>
         r.image_url ? (
           <img
             src={r.image_url}
             alt=""
             className="h-10 w-10 rounded-xl object-cover border border-dusk-100 bg-canvas-alt shadow-sm"
             onError={(e) => {
-              e.target.src = 'https://images.unsplash.com/photo-1518495973542-4542c06a5843?w=150&auto=format&fit=crop&q=60'
+              e.target.src =
+                "https://images.unsplash.com/photo-1518495973542-4542c06a5843?w=150&auto=format&fit=crop&q=60";
             }}
           />
         ) : (
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-canvas-alt border border-dusk-50 text-ink-soft">
             <Tag size={16} />
           </div>
-        )
-      ),
+        ),
     },
     {
-      key: 'name',
-      header: 'Category Details',
+      key: "name",
+      header: "Category Details",
       render: (r) => (
         <div>
           <p className="font-semibold text-ink">{r.name}</p>
@@ -156,26 +178,29 @@ export default function BlogCategories() {
       ),
     },
     {
-      key: 'description',
-      header: 'Description',
+      key: "description",
+      header: "Description",
       render: (r) => (
-        <p className="max-w-xs text-xs text-ink-soft truncate" title={r.description}>
-          {r.description || 'No description provided.'}
+        <p
+          className="max-w-xs text-xs text-ink-soft truncate"
+          title={r.description}
+        >
+          {r.description || "No description provided."}
         </p>
       ),
     },
     {
-      key: 'status',
-      header: 'Status',
+      key: "status",
+      header: "Status",
       render: (r) => (
-        <Badge tone={r.status !== false ? 'approved' : 'neutral'}>
-          {r.status !== false ? 'Active' : 'Inactive'}
+        <Badge tone={r.status !== false ? "approved" : "neutral"}>
+          {r.status !== false ? "Active" : "Inactive"}
         </Badge>
       ),
     },
     {
-      key: 'created_at',
-      header: 'Date Created',
+      key: "created_at",
+      header: "Date Created",
       render: (r) => (
         <span className="flex items-center gap-1.5 text-xs text-ink-soft">
           <Calendar size={13} />
@@ -184,8 +209,8 @@ export default function BlogCategories() {
       ),
     },
     {
-      key: 'actions',
-      header: '',
+      key: "actions",
+      header: "",
       render: (r) => (
         <div className="flex items-center justify-end gap-1">
           <button
@@ -205,7 +230,7 @@ export default function BlogCategories() {
         </div>
       ),
     },
-  ]
+  ];
 
   return (
     <div className="space-y-6">
@@ -237,7 +262,7 @@ export default function BlogCategories() {
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={editing ? 'Edit Blog Category' : 'Add Blog Category'}
+        title={editing ? "Edit Blog Category" : "Add Blog Category"}
         width="max-w-xl"
       >
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -264,27 +289,51 @@ export default function BlogCategories() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Field label="Image URL" hint="Paste a URL or /uploads/ path">
-              <input
-                className={inputCls}
-                value={form.image_url}
-                onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-                placeholder="e.g. /uploads/meditation.webp"
-              />
-            </Field>
+            <div>
+              <span className="mb-1.5 block text-sm font-medium text-ink">Category Image</span>
+              <label className="flex h-36 w-full cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-dusk-200 bg-canvas hover:bg-dusk-50/50 overflow-hidden transition-all relative">
+                {imagePreview ? (
+                  <img
+                    src={imagePreview}
+                    alt="Category Preview"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="text-center p-3">
+                    <ImageIcon size={22} className="mx-auto text-ink-soft mb-1" />
+                    <span className="mt-1 block text-xs text-ink font-medium">Upload Image</span>
+                    <span className="block text-[10px] text-ink-soft mt-0.5">JPG, PNG or WEBP</span>
+                  </div>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+              </label>
+            </div>
 
             <div className="flex flex-col justify-center">
-              <span className="mb-1.5 block text-sm font-medium text-ink">Category Status</span>
+              <span className="mb-1.5 block text-sm font-medium text-ink">
+                Category Status
+              </span>
               <label className="flex items-center gap-2.5 cursor-pointer select-none border border-dusk-50 bg-canvas-alt/40 p-4 rounded-xl hover:bg-canvas-alt/70 transition-colors">
                 <input
                   type="checkbox"
                   className="rounded border-dusk-100 text-dusk-700 focus:ring-dusk-500 h-5 w-5 cursor-pointer"
                   checked={form.status}
-                  onChange={(e) => setForm({ ...form, status: e.target.checked })}
+                  onChange={(e) =>
+                    setForm({ ...form, status: e.target.checked })
+                  }
                 />
                 <div>
-                  <span className="text-sm font-semibold text-ink block">Active Status</span>
-                  <span className="text-xs text-ink-soft block mt-0.5">Visible to users when filtering blogs</span>
+                  <span className="text-sm font-semibold text-ink block">
+                    Active Status
+                  </span>
+                  <span className="text-xs text-ink-soft block mt-0.5">
+                    Visible to users when filtering blogs
+                  </span>
                 </div>
               </label>
             </div>
@@ -295,28 +344,34 @@ export default function BlogCategories() {
               rows={3}
               className={`${inputCls} resize-y`}
               value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, description: e.target.value })
+              }
               placeholder="e.g. Guided meditation practices, focus drills, and self-awareness journals..."
             />
           </Field>
 
           {/* Form Actions */}
           <div className="flex justify-end gap-2 pt-4 border-t border-dusk-50">
-            <Button type="button" variant="ghost" onClick={() => setModalOpen(false)}>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setModalOpen(false)}
+            >
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? (
                 <Spinner className="border-t-white border-white/30" />
               ) : editing ? (
-                'Save Changes'
+                "Save Changes"
               ) : (
-                'Add Category'
+                "Add Category"
               )}
             </Button>
           </div>
         </form>
       </Modal>
     </div>
-  )
+  );
 }
