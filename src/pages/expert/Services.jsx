@@ -9,6 +9,7 @@ import {
   BadgeCheck,
   Film,
   Trash2,
+  Image as ImageIcon,
 } from "lucide-react";
 import {
   useGetSessionsByExpertQuery,
@@ -55,36 +56,45 @@ const emptyForm = {
 
 export default function Services() {
   const user = useSelector((s) => s.auth.user);
-  console.log(user?.id,"lllllllllllllllllll")
-  
+  console.log(user?.id, "lllllllllllllllllll");
+
   // Use the new API endpoints
-  const { data: mine = [], isLoading } = useGetSessionsByExpertQuery(user?.id, { skip: !user?.id });
+  const { data: mine = [], isLoading } = useGetSessionsByExpertQuery(user?.id, {
+    skip: !user?.id,
+  });
   const { data: categories = [] } = useGetCategoriesQuery();
-  
+
   const [createLive] = useCreateLiveSessionMutation();
   const [createRecorded] = useCreateRecordedSessionMutation();
   const [updateSession] = useUpdateSessionMutation();
   const [deleteSessions] = useDeleteSessionsMutation();
-  console.log(mine,"555555555555555")
+  console.log(mine, "555555555555555");
 
   const [filterType, setFilterType] = useState("ALL");
   const [modalOpen, setModalOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState(null);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Image Upload States
+  const [imageFile, setImageFile] = useState(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState("");
 
   const openAdd = () => {
     setEditing(null);
     setForm(emptyForm);
+    setImageFile(null);
+    setThumbnailPreview("");
     setModalOpen(true);
   };
-  
+
   const openEdit = (svc) => {
     setEditing(svc);
-    
+
     // Map existing session fields to form
     const isLive = svc.session_type === "LIVE";
-    
+
     setForm({
       title: svc.title || "",
       session_type: svc.session_type || "LIVE",
@@ -93,21 +103,40 @@ export default function Services() {
       description: svc.description || "",
       thumbnail: svc.thumbnail || "",
       language: svc.language || "English",
-      
-      start_time: svc.start_time ? new Date(svc.start_time).toISOString().slice(0, 16) : "",
-      end_time: svc.end_time ? new Date(svc.end_time).toISOString().slice(0, 16) : "",
+
+      start_time: svc.start_time
+        ? new Date(svc.start_time).toISOString().slice(0, 16)
+        : "",
+      end_time: svc.end_time
+        ? new Date(svc.end_time).toISOString().slice(0, 16)
+        : "",
       duration_minutes: svc.duration_minutes || "",
       max_participants: svc.max_participants || "",
       meeting_link: svc.meeting_link || "",
-      
+
       video_url: svc.video_url || "",
     });
+    setImageFile(null);
+    setThumbnailPreview(svc.thumbnail || "");
     setModalOpen(true);
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setThumbnailPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    setIsSubmitting(true);
+
     const isLive = form.session_type === "LIVE";
 
     const payload = {
@@ -123,10 +152,18 @@ export default function Services() {
     };
 
     if (isLive) {
-      payload.start_time = form.start_time ? new Date(form.start_time).toISOString() : null;
-      payload.end_time = form.end_time ? new Date(form.end_time).toISOString() : null;
-      payload.duration_minutes = form.duration_minutes ? Number(form.duration_minutes) : null;
-      payload.max_participants = form.max_participants ? Number(form.max_participants) : null;
+      payload.start_time = form.start_time
+        ? new Date(form.start_time).toISOString()
+        : null;
+      payload.end_time = form.end_time
+        ? new Date(form.end_time).toISOString()
+        : null;
+      payload.duration_minutes = form.duration_minutes
+        ? Number(form.duration_minutes)
+        : null;
+      payload.max_participants = form.max_participants
+        ? Number(form.max_participants)
+        : null;
       payload.meeting_link = form.meeting_link;
       payload.video_url = "";
     } else {
@@ -151,10 +188,13 @@ export default function Services() {
       }
       setModalOpen(false);
     } catch (err) {
-      alert(err?.data?.message || "Failed to save session. Please check your inputs.");
+      alert(
+        err?.data?.message ||
+          "Failed to save session. Please check your inputs.",
+      );
     }
   };
-  
+
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this session?")) {
       try {
@@ -163,7 +203,7 @@ export default function Services() {
         alert(err?.data?.message || "Failed to delete session.");
       }
     }
-  }
+  };
 
   const filteredSessions = mine.filter((s) => {
     if (filterType === "ALL") return true;
@@ -177,10 +217,18 @@ export default function Services() {
       render: (r) => (
         <div className="flex items-center gap-3">
           {r.thumbnail ? (
-            <img src={r.thumbnail} alt={r.title} className="w-10 h-10 object-cover rounded-md border border-dusk-100" />
+            <img
+              src={r.thumbnail}
+              alt={r.title}
+              className="w-10 h-10 object-cover rounded-md border border-dusk-100"
+            />
           ) : (
             <div className="w-10 h-10 bg-canvas-alt flex items-center justify-center rounded-md border border-dusk-100">
-              {r.session_type === 'LIVE' ? <Video size={16} className="text-marigold-500" /> : <Film size={16} className="text-dusk-500" />}
+              {r.session_type === "LIVE" ? (
+                <Video size={16} className="text-marigold-500" />
+              ) : (
+                <Film size={16} className="text-dusk-500" />
+              )}
             </div>
           )}
           <span className="max-w-[200px] truncate font-medium text-ink">
@@ -189,22 +237,20 @@ export default function Services() {
         </div>
       ),
     },
-    { 
-      key: "type", 
-      header: "Type", 
+    {
+      key: "type",
+      header: "Type",
       render: (r) => (
-        <Badge tone={r.session_type === 'LIVE' ? 'warning' : 'info'}>
-          {r.session_type === 'LIVE' ? 'Live' : 'Recorded'}
+        <Badge tone={r.session_type === "LIVE" ? "warning" : "info"}>
+          {r.session_type === "LIVE" ? "Live" : "Recorded"}
         </Badge>
-      )
+      ),
     },
     { key: "price", header: "Price", render: (r) => currency(r.price) },
     {
       key: "status",
       header: "Status",
-      render: (r) => (
-        <Badge tone={meta(r.status).tone}>{r.status}</Badge>
-      ),
+      render: (r) => <Badge tone={meta(r.status).tone}>{r.status}</Badge>,
     },
     {
       key: "createdOn",
@@ -250,17 +296,21 @@ export default function Services() {
         action={
           <div className="flex items-center gap-4">
             <div className="flex bg-canvas-alt rounded-lg p-1 border border-dusk-100">
-              {['ALL', 'LIVE', 'RECORDED'].map(type => (
+              {["ALL", "LIVE", "RECORDED"].map((type) => (
                 <button
                   key={type}
                   onClick={() => setFilterType(type)}
                   className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
-                    filterType === type 
-                      ? 'bg-white text-ink shadow-sm' 
-                      : 'text-ink-soft hover:text-ink'
+                    filterType === type
+                      ? "bg-white text-ink shadow-sm"
+                      : "text-ink-soft hover:text-ink"
                   }`}
                 >
-                  {type === 'ALL' ? 'All' : type === 'LIVE' ? 'Live' : 'Recorded'}
+                  {type === "ALL"
+                    ? "All"
+                    : type === "LIVE"
+                      ? "Live"
+                      : "Recorded"}
                 </button>
               ))}
             </div>
@@ -274,8 +324,16 @@ export default function Services() {
       {!isLoading && filteredSessions.length === 0 ? (
         <EmptyState
           icon={BadgeCheck}
-          title={filterType === "ALL" ? "No sessions yet" : `No ${filterType.toLowerCase()} sessions`}
-          message={filterType === "ALL" ? "Create your first Live Session or Recorded Course." : `You don't have any ${filterType.toLowerCase()} sessions yet.`}
+          title={
+            filterType === "ALL"
+              ? "No sessions yet"
+              : `No ${filterType.toLowerCase()} sessions`
+          }
+          message={
+            filterType === "ALL"
+              ? "Create your first Live Session or Recorded Course."
+              : `You don't have any ${filterType.toLowerCase()} sessions yet.`
+          }
           action={
             <Button onClick={openAdd}>
               <Plus size={16} /> Create Session
@@ -283,7 +341,11 @@ export default function Services() {
           }
         />
       ) : (
-        <DataTable columns={columns} data={filteredSessions} isLoading={isLoading} />
+        <DataTable
+          columns={columns}
+          data={filteredSessions}
+          isLoading={isLoading}
+        />
       )}
 
       <Modal
@@ -313,7 +375,10 @@ export default function Services() {
                   />
                 ) : (
                   <div className="text-center p-3">
-                    <ImageIcon size={22} className="mx-auto text-ink-soft mb-1" />
+                    <ImageIcon
+                      size={22}
+                      className="mx-auto text-ink-soft mb-1"
+                    />
                     <span className="mt-1 block text-xs text-ink font-medium">
                       Upload Thumbnail
                     </span>
@@ -337,7 +402,9 @@ export default function Services() {
               <select
                 className={inputCls}
                 value={form.session_type}
-                onChange={(e) => setForm({ ...form, session_type: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, session_type: e.target.value })
+                }
                 disabled={!!editing} // Often shouldn't change type after creation
               >
                 {sessionTypeOptions.map((t) => (
@@ -352,7 +419,9 @@ export default function Services() {
                 required
                 className={inputCls}
                 value={form.category_id}
-                onChange={(e) => setForm({ ...form, category_id: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, category_id: e.target.value })
+                }
               >
                 <option value="">Select category</option>
                 {categories.map((c) => (
@@ -363,7 +432,7 @@ export default function Services() {
               </select>
             </Field>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-3">
             <Field label="Price (₹)">
               <input
@@ -384,7 +453,7 @@ export default function Services() {
               />
             </Field>
           </div>
-          
+
           <Field label="Description">
             <textarea
               required
@@ -488,16 +557,18 @@ export default function Services() {
                   required={form.session_type === "RECORDED"}
                   className={inputCls}
                   value={form.video_url}
-                  onChange={(e) => setForm({ ...form, video_url: e.target.value })}
+                  onChange={(e) =>
+                    setForm({ ...form, video_url: e.target.value })
+                  }
                   placeholder="https://..."
                 />
               </Field>
               {form.video_url && (
                 <div className="mt-3">
                   <p className="text-xs text-ink-soft mb-1">Preview:</p>
-                  <video 
-                    src={form.video_url} 
-                    controls 
+                  <video
+                    src={form.video_url}
+                    controls
                     className="w-full max-h-48 rounded-lg bg-black object-contain"
                   />
                 </div>
@@ -514,7 +585,11 @@ export default function Services() {
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : editing ? "Save changes" : "Create Session"}
+              {isSubmitting
+                ? "Saving..."
+                : editing
+                  ? "Save changes"
+                  : "Create Session"}
             </Button>
           </div>
         </form>
@@ -529,14 +604,24 @@ export default function Services() {
           <div>
             <div className="flex gap-4 items-start mb-4">
               {detailOpen.thumbnail && (
-                <img src={detailOpen.thumbnail} alt="" className="w-32 h-24 object-cover rounded-xl border border-dusk-100" />
+                <img
+                  src={detailOpen.thumbnail}
+                  alt=""
+                  className="w-32 h-24 object-cover rounded-xl border border-dusk-100"
+                />
               )}
               <div>
                 <div className="flex gap-2 items-center mb-1">
-                  <Badge tone={detailOpen.session_type === 'LIVE' ? 'warning' : 'info'}>
+                  <Badge
+                    tone={
+                      detailOpen.session_type === "LIVE" ? "warning" : "info"
+                    }
+                  >
                     {detailOpen.session_type}
                   </Badge>
-                  <Badge tone={meta(detailOpen.status).tone}>{detailOpen.status}</Badge>
+                  <Badge tone={meta(detailOpen.status).tone}>
+                    {detailOpen.status}
+                  </Badge>
                 </div>
                 <p className="text-xl font-bold text-ink">{detailOpen.title}</p>
                 <p className="text-sm font-medium text-ink-soft mt-1">
@@ -545,11 +630,15 @@ export default function Services() {
               </div>
             </div>
 
-            <p className="mt-2 mb-5 text-sm text-ink whitespace-pre-wrap">{detailOpen.description}</p>
+            <p className="mt-2 mb-5 text-sm text-ink whitespace-pre-wrap">
+              {detailOpen.description}
+            </p>
 
             {detailOpen.session_type === "RECORDED" && detailOpen.video_url && (
               <div className="mt-4">
-                <p className="mb-2 text-sm font-medium text-ink">Recorded Video</p>
+                <p className="mb-2 text-sm font-medium text-ink">
+                  Recorded Video
+                </p>
                 <video
                   src={detailOpen.video_url}
                   controls
@@ -562,19 +651,31 @@ export default function Services() {
               <div className="mt-4 grid grid-cols-2 gap-4 bg-canvas-alt p-4 rounded-xl border border-dusk-50">
                 <div>
                   <p className="text-xs text-ink-soft mb-0.5">Start Time</p>
-                  <p className="text-sm font-semibold">{formatDate(detailOpen.start_time)}</p>
+                  <p className="text-sm font-semibold">
+                    {formatDate(detailOpen.start_time)}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-ink-soft mb-0.5">End Time</p>
-                  <p className="text-sm font-semibold">{formatDate(detailOpen.end_time)}</p>
+                  <p className="text-sm font-semibold">
+                    {formatDate(detailOpen.end_time)}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-ink-soft mb-0.5">Duration</p>
-                  <p className="text-sm font-semibold">{detailOpen.duration_minutes ? `${detailOpen.duration_minutes} min` : '-'}</p>
+                  <p className="text-sm font-semibold">
+                    {detailOpen.duration_minutes
+                      ? `${detailOpen.duration_minutes} min`
+                      : "-"}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-xs text-ink-soft mb-0.5">Max Participants</p>
-                  <p className="text-sm font-semibold">{detailOpen.max_participants || '-'}</p>
+                  <p className="text-xs text-ink-soft mb-0.5">
+                    Max Participants
+                  </p>
+                  <p className="text-sm font-semibold">
+                    {detailOpen.max_participants || "-"}
+                  </p>
                 </div>
                 {detailOpen.meeting_link && (
                   <div className="col-span-2 mt-2">
@@ -585,7 +686,8 @@ export default function Services() {
                       rel="noreferrer"
                       className="flex w-fit items-center gap-1.5 rounded-lg bg-dusk-50 px-3 py-2 text-sm font-medium text-dusk-700 hover:bg-dusk-100 transition-colors"
                     >
-                      <Video size={16} /> {detailOpen.meeting_link} <ExternalLink size={14} />
+                      <Video size={16} /> {detailOpen.meeting_link}{" "}
+                      <ExternalLink size={14} />
                     </a>
                   </div>
                 )}
