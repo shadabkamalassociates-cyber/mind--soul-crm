@@ -149,7 +149,7 @@ export default function Blogs() {
     formData.append('is_featured', String(form.is_featured))
 
     if (form.category_id) {
-      formData.append('category_id', form.category_id)
+      formData.append('category_id', "c6f58eee-4732-41e7-8b38-e896def1c75d")
     }
     
     // Check if author_id is a valid integer before appending (UUIDs will be ignored to prevent DB crash)

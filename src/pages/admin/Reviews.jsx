@@ -1,6 +1,6 @@
 import { Star, Flag, CheckCircle2 } from 'lucide-react'
 import { useGetReviewsQuery, useUpdateReviewStatusMutation } from '../../services/reviewService'
-import { useGetServicesQuery } from '../../services/serviceService'
+import { useGetAllSessionsQuery } from '../../services/serviceService'
 import { useGetUsersQuery } from '../../services/userService'
 import { PageHeader, Button, EmptyState } from '../../components/Common'
 import Badge from '../../components/Badge'
@@ -8,7 +8,7 @@ import { meta, formatDate } from '../../utils/status'
 
 export default function Reviews() {
   const { data: reviews = [], isLoading } = useGetReviewsQuery()
-  const { data: services = [] } = useGetServicesQuery()
+  const { data: services = [] } = useGetAllSessionsQuery()
   const { data: users = [] } = useGetUsersQuery()
   const [updateStatus] = useUpdateReviewStatusMutation()
   const serviceById = Object.fromEntries(services.map((s) => [s.id, s]))

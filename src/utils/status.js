@@ -9,10 +9,12 @@ export const statusMeta = {
   live: { label: 'Live', tone: 'live' },
   rejected: { label: 'Rejected', tone: 'rejected' },
 
-  // bookings
+  // bookings & sessions
+  upcoming: { label: 'Upcoming', tone: 'live' },
   confirmed: { label: 'Confirmed', tone: 'approved' },
   completed: { label: 'Completed', tone: 'info' },
   refunded: { label: 'Refunded', tone: 'rejected' },
+  cancelled: { label: 'Cancelled', tone: 'rejected' },
 
   // users
   active: { label: 'Active', tone: 'approved' },

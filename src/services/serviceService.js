@@ -6,15 +6,30 @@ export const serviceApi = createApi({
     credentials: 'include',
     baseUrl: '/api',
   }),
-  tagTypes: ['Service'],
+  tagTypes: ['Service', 'Session'],
   endpoints: (builder) => ({
     getServices: builder.query({
       query: () => ({ url: '/services', method: 'GET' }),
       providesTags: ['Service'],
     }),
+    getAllSessions: builder.query({
+      query: () => ({ url: '/sessions/fetch-all', method: 'GET' }),
+      transformResponse: (response) => response.data || response,
+      providesTags: ['Session'],
+    }),
+    getSessionsByExpert: builder.query({
+      query: (expertId) => `/sessions/fetch-by-expert/${expertId}`,
+      transformResponse: (response) => response.data || response,
+      providesTags: (r, e, expertId) => [{ type: 'Session', id: expertId }, 'Session'],
+    }),
     getService: builder.query({
       query: (id) => ({ url: `/services/${id}`, method: 'GET' }),
       providesTags: (r, e, id) => [{ type: 'Service', id }],
+    }),
+    getSession: builder.query({
+      query: (id) => ({ url: `/sessions/fetch/${id}`, method: 'GET' }),
+      transformResponse: (response) => response.data || response,
+      providesTags: (r, e, id) => [{ type: 'Session', id }],
     }),
     addService: builder.mutation({
       query: (body) => ({ url: '/services', method: 'POST', body }),
@@ -36,6 +51,26 @@ export const serviceApi = createApi({
       query: (id) => ({ url: `/services/${id}`, method: 'DELETE' }),
       invalidatesTags: ['Service'],
     }),
+    createLiveSession: builder.mutation({
+      query: (body) => ({ url: '/sessions/live/create', method: 'POST', body }),
+      invalidatesTags: ['Session'],
+    }),
+    createRecordedSession: builder.mutation({
+      query: (body) => ({ url: '/sessions/create', method: 'POST', body }),
+      invalidatesTags: ['Session'],
+    }),
+    updateSession: builder.mutation({
+      query: ({ id, ...body }) => ({ url: `/sessions/update/${id}`, method: 'PUT', body }),
+      invalidatesTags: ['Session'],
+    }),
+    deleteSessions: builder.mutation({
+      query: (ids) => ({
+        url: '/sessions/delete',
+        method: 'DELETE',
+        body: Array.isArray(ids) ? ids : [ids],
+      }),
+      invalidatesTags: ['Session'],
+    }),
   }),
 })
 
@@ -47,4 +82,11 @@ export const {
   useUpdateServiceStatusMutation,
   useUpdateServiceVideoStatusMutation,
   useDeleteServiceMutation,
+  useGetSessionsByExpertQuery,
+  useCreateLiveSessionMutation,
+  useCreateRecordedSessionMutation,
+  useUpdateSessionMutation,
+  useDeleteSessionsMutation,
+  useGetAllSessionsQuery,
+  useGetSessionQuery,
 } = serviceApi

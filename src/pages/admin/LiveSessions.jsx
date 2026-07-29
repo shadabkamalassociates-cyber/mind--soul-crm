@@ -1,5 +1,5 @@
 import { Video, ExternalLink, Users2, Clock } from 'lucide-react'
-import { useGetServicesQuery } from '../../services/serviceService'
+import { useGetAllSessionsQuery } from '../../services/serviceService'
 import { useGetExpertsQuery } from '../../services/expertService'
 import { useGetBookingsQuery } from '../../services/bookingService'
 import { PageHeader, EmptyState } from '../../components/Common'
@@ -9,7 +9,7 @@ import { currency, formatDateTime } from '../../utils/status'
 const NOW = new Date('2026-07-16T09:00:00+05:30')
 
 export default function LiveSessions() {
-  const { data: services = [], isLoading } = useGetServicesQuery()
+  const { data: services = [], isLoading } = useGetAllSessionsQuery()
   const { data: experts = [] } = useGetExpertsQuery()
   const { data: bookings = [] } = useGetBookingsQuery()
   const expertById = Object.fromEntries(experts.map((e) => [e.id, e]))

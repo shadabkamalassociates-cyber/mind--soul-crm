@@ -3,7 +3,7 @@ import { IndianRupee, Users, BadgeCheck, Wallet, ArrowUpRight } from 'lucide-rea
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { useGetBookingsQuery } from '../../services/bookingService'
 import { useGetExpertsQuery } from '../../services/expertService'
-import { useGetServicesQuery } from '../../services/serviceService'
+import { useGetAllSessionsQuery } from '../../services/serviceService'
 import { useGetPayoutsQuery } from '../../services/payoutService'
 import { PageHeader } from '../../components/Common'
 import StatCard from '../../components/StatCard'
@@ -18,7 +18,7 @@ const revenueTrend = [
 export default function Dashboard() {
   const { data: bookings = [] } = useGetBookingsQuery()
   const { data: experts = [] } = useGetExpertsQuery()
-  const { data: services = [] } = useGetServicesQuery()
+  const { data: services = [] } = useGetAllSessionsQuery()
   const { data: payouts = [] } = useGetPayoutsQuery()
 
   const totalRevenue = bookings.reduce((sum, b) => sum + (b.status !== 'refunded' ? b.amount : 0), 0)

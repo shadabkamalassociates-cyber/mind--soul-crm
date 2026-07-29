@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Search } from 'lucide-react'
 import { useGetBookingsQuery, useUpdateBookingMutation } from '../../services/bookingService'
-import { useGetServicesQuery } from '../../services/serviceService'
+import { useGetAllSessionsQuery } from '../../services/serviceService'
 import { useGetUsersQuery } from '../../services/userService'
 import { useGetExpertsQuery } from '../../services/expertService'
 import { PageHeader, inputCls, Button } from '../../components/Common'
@@ -11,7 +11,7 @@ import { meta, currency, formatDateTime } from '../../utils/status'
 
 export default function Bookings() {
   const { data: bookings = [], isLoading } = useGetBookingsQuery()
-  const { data: services = [] } = useGetServicesQuery()
+  const { data: services = [] } = useGetAllSessionsQuery()
   const { data: users = [] } = useGetUsersQuery()
   const { data: experts = [] } = useGetExpertsQuery()
   const [updateBooking] = useUpdateBookingMutation()

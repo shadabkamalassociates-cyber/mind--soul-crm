@@ -6,9 +6,11 @@ const parseArray = (val) => {
   if (typeof val === 'string') {
     try {
       const parsed = JSON.parse(val)
+      // Handle {description, documents:[]} format from certifications column
+      if (parsed && Array.isArray(parsed.documents)) return parsed.documents
       if (Array.isArray(parsed)) return parsed
     } catch {
-      // not JSON array
+      // not JSON — treat as comma-separated
     }
     return val.split(',').map((s) => s.trim()).filter(Boolean)
   }
@@ -61,9 +63,9 @@ export const expertApi = createApi({
               appliedOn: e.created_at,
               created_at: e.created_at,
               categories: e.categories || [],
-              skillTags: Array.isArray(e.categories) && e.categories.length > 0 ? e.categories.map((c) => c.name || c) : ['General'],
-              languages: parseArray(e.languagesArray || e.languages || ['English', 'Hindi']),
-              certificates: parseArray(e.certificationsValue || e.certificates || []),
+              skillTags: Array.isArray(e.categories) && e.categories.length > 0 ? e.categories.map((c) => c.name || c) : [],
+              languages: parseArray(e.languages),
+              certificates: parseArray(e.certifications),
               govId: e.govId || null,
               bankVerified: e.bankVerified ?? false,
               earningsLifetime: e.earningsLifetime ?? 0,
@@ -134,9 +136,9 @@ export const expertApi = createApi({
           reviewedOn: item.verified_at,
           created_at: item.created_at,
           categories: item.categories || [],
-          skillTags: Array.isArray(item.categories) && item.categories.length > 0 ? item.categories.map((c) => c.name || c) : ['General'],
-          languages: parseArray(item.languagesArray || item.languages || ['English', 'Hindi']),
-          certificates: parseArray(item.certificationsValue || item.certificates || []),
+          skillTags: Array.isArray(item.categories) && item.categories.length > 0 ? item.categories.map((c) => c.name || c) : [],
+          languages: parseArray(item.languages),
+          certificates: parseArray(item.certifications),
           govId: item.govId || null,
           bankVerified: item.bankVerified ?? false,
           earningsLifetime: item.earningsLifetime ?? 0,

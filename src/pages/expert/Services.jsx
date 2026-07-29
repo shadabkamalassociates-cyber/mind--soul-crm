@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useSelector } from "react-redux";
 import {
   Plus,
@@ -8,14 +8,14 @@ import {
   ExternalLink,
   BadgeCheck,
   Film,
-  UploadCloud,
-  X,
+  Trash2,
 } from "lucide-react";
 import {
-  useGetServicesQuery,
-  useAddServiceMutation,
-  useUpdateServiceMutation,
-  useUpdateServiceStatusMutation,
+  useGetSessionsByExpertQuery,
+  useCreateLiveSessionMutation,
+  useCreateRecordedSessionMutation,
+  useUpdateSessionMutation,
+  useDeleteSessionsMutation,
 } from "../../services/serviceService";
 import { useGetCategoriesQuery } from "../../services/categoryService";
 import {
@@ -28,214 +28,215 @@ import {
 import DataTable from "../../components/DataTable";
 import Modal from "../../components/Modal";
 import Badge from "../../components/Badge";
-import StatusStepper from "../../components/StatusStepper";
 import { meta, currency, formatDate } from "../../utils/status";
 
-const typeOptions = [
-  { value: "live_session", label: "Live Session (Google Meet)" },
-  { value: "1_1_consultation", label: "1:1 Consultation" },
-  { value: "workshop", label: "Workshop" },
-  { value: "course", label: "Recorded Course" },
-  { value: "membership", label: "Membership" },
-];
-
-const steps = [
-  { key: "draft", label: "Draft" },
-  { key: "pending_review", label: "Submitted" },
-  { key: "approved", label: "Approved" },
-  { key: "live", label: "Live" },
+const sessionTypeOptions = [
+  { value: "LIVE", label: "Live Session (Google Meet, etc.)" },
+  { value: "RECORDED", label: "Recorded Course / Workshop" },
 ];
 
 const emptyForm = {
   title: "",
-  type: "live_session",
-  category: "",
+  session_type: "LIVE",
+  category_id: "",
   price: "",
-  duration: "",
-  maxSeats: "",
   description: "",
-  hasLiveComponent: true,
-  scheduledAt: "",
-  meetLink: "",
-  videoUrl: "",
-  videoStatus: "not_submitted",
-  videoFileName: "",
+  thumbnail: "",
+  language: "English",
+  // Live Specific
+  start_time: "",
+  end_time: "",
+  duration_minutes: "",
+  max_participants: "",
+  meeting_link: "",
+  // Recorded Specific
+  video_url: "",
 };
 
 export default function Services() {
   const user = useSelector((s) => s.auth.user);
-  const { data: services = [], isLoading } = useGetServicesQuery();
+  console.log(user?.id,"lllllllllllllllllll")
+  
+  // Use the new API endpoints
+  const { data: mine = [], isLoading } = useGetSessionsByExpertQuery(user?.id, { skip: !user?.id });
   const { data: categories = [] } = useGetCategoriesQuery();
-  const [addService] = useAddServiceMutation();
-  const [updateService] = useUpdateServiceMutation();
-  const [updateStatus] = useUpdateServiceStatusMutation();
+  
+  const [createLive] = useCreateLiveSessionMutation();
+  const [createRecorded] = useCreateRecordedSessionMutation();
+  const [updateSession] = useUpdateSessionMutation();
+  const [deleteSessions] = useDeleteSessionsMutation();
+  console.log(mine,"555555555555555")
 
+  const [filterType, setFilterType] = useState("ALL");
   const [modalOpen, setModalOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState(null);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm);
-  const fileInputRef = useRef(null);
-
-  const mine = services.filter((s) => s.expertId === user.id);
 
   const openAdd = () => {
     setEditing(null);
     setForm(emptyForm);
     setModalOpen(true);
   };
+  
   const openEdit = (svc) => {
     setEditing(svc);
+    
+    // Map existing session fields to form
+    const isLive = svc.session_type === "LIVE";
+    
     setForm({
-      title: svc.title,
-      type: svc.type,
-      category: svc.category,
-      price: svc.price,
-      duration: svc.duration || "",
-      maxSeats: svc.maxSeats || "",
-      description: svc.description,
-      hasLiveComponent: !!svc.hasLiveComponent,
-      scheduledAt: svc.scheduledAt ? svc.scheduledAt.slice(0, 16) : "",
-      meetLink: svc.meetLink || "",
-      videoUrl: svc.videoUrl || "",
-      videoStatus: svc.videoStatus || "not_submitted",
-      videoFileName: "",
+      title: svc.title || "",
+      session_type: svc.session_type || "LIVE",
+      category_id: svc.category_id || "",
+      price: svc.price !== undefined ? svc.price : "",
+      description: svc.description || "",
+      thumbnail: svc.thumbnail || "",
+      language: svc.language || "English",
+      
+      start_time: svc.start_time ? new Date(svc.start_time).toISOString().slice(0, 16) : "",
+      end_time: svc.end_time ? new Date(svc.end_time).toISOString().slice(0, 16) : "",
+      duration_minutes: svc.duration_minutes || "",
+      max_participants: svc.max_participants || "",
+      meeting_link: svc.meeting_link || "",
+      
+      video_url: svc.video_url || "",
     });
     setModalOpen(true);
   };
 
-  const handleVideoSelect = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const objectUrl = URL.createObjectURL(file);
-    // Selecting a new file always resets review to pending — admin must review the new recording.
-    setForm({
-      ...form,
-      videoUrl: objectUrl,
-      videoFileName: file.name,
-      videoStatus: "pending_review",
-    });
-  };
-
-  const removeVideo = () =>
-    setForm({
-      ...form,
-      videoUrl: "",
-      videoFileName: "",
-      videoStatus: "not_submitted",
-    });
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const videoChanged = editing
-      ? form.videoUrl !== (editing.videoUrl || "")
-      : !!form.videoUrl;
-    const payload = {
-      title: form.title,
-      type: form.type,
-      category: form.category,
-      price: Number(form.price),
-      duration: form.duration ? Number(form.duration) : null,
-      maxSeats: form.maxSeats ? Number(form.maxSeats) : null,
-      description: form.description,
-      hasLiveComponent: form.hasLiveComponent,
-      scheduledAt:
-        form.hasLiveComponent && form.scheduledAt
-          ? new Date(form.scheduledAt).toISOString()
-          : null,
-      meetLink: form.hasLiveComponent ? form.meetLink : "",
-      videoUrl: form.videoUrl,
-      videoStatus: form.videoUrl
-        ? videoChanged
-          ? "pending_review"
-          : form.videoStatus
-        : "not_submitted",
-      videoReviewNote: videoChanged ? null : undefined,
-    };
-    if (editing) await updateService({ id: editing.id, ...payload });
-    else await addService({ expertId: user.id, ...payload });
-    setModalOpen(false);
-  };
+    
+    const isLive = form.session_type === "LIVE";
 
-  const submitForReview = (svc) =>
-    updateStatus({ id: svc.id, status: "pending_review" });
+    const payload = {
+      expert_id: user.id,
+      category_id: form.category_id,
+      title: form.title,
+      description: form.description,
+      thumbnail: form.thumbnail,
+      price: Number(form.price) || 0,
+      language: form.language,
+      session_type: form.session_type,
+      status: isLive ? "UPCOMING" : "COMPLETE",
+    };
+
+    if (isLive) {
+      payload.start_time = form.start_time ? new Date(form.start_time).toISOString() : null;
+      payload.end_time = form.end_time ? new Date(form.end_time).toISOString() : null;
+      payload.duration_minutes = form.duration_minutes ? Number(form.duration_minutes) : null;
+      payload.max_participants = form.max_participants ? Number(form.max_participants) : null;
+      payload.meeting_link = form.meeting_link;
+      payload.video_url = "";
+    } else {
+      payload.video_url = form.video_url;
+      // Clear out live fields just to be safe
+      payload.meeting_link = "";
+      payload.start_time = null;
+      payload.end_time = null;
+      payload.duration_minutes = null;
+      payload.max_participants = null;
+    }
+
+    try {
+      if (editing) {
+        await updateSession({ id: editing.id, ...payload }).unwrap();
+      } else {
+        if (isLive) {
+          await createLive(payload).unwrap();
+        } else {
+          await createRecorded(payload).unwrap();
+        }
+      }
+      setModalOpen(false);
+    } catch (err) {
+      alert(err?.data?.message || "Failed to save session. Please check your inputs.");
+    }
+  };
+  
+  const handleDelete = async (id) => {
+    if (confirm("Are you sure you want to delete this session?")) {
+      try {
+        await deleteSessions([id]).unwrap();
+      } catch (err) {
+        alert(err?.data?.message || "Failed to delete session.");
+      }
+    }
+  }
+
+  const filteredSessions = mine.filter((s) => {
+    if (filterType === "ALL") return true;
+    return s.session_type === filterType;
+  });
 
   const columns = [
     {
       key: "title",
-      header: "Service",
+      header: "Session",
       render: (r) => (
-        <div className="flex items-center gap-2">
-          {r.hasLiveComponent && (
-            <Video size={14} className="shrink-0 text-marigold-500" />
+        <div className="flex items-center gap-3">
+          {r.thumbnail ? (
+            <img src={r.thumbnail} alt={r.title} className="w-10 h-10 object-cover rounded-md border border-dusk-100" />
+          ) : (
+            <div className="w-10 h-10 bg-canvas-alt flex items-center justify-center rounded-md border border-dusk-100">
+              {r.session_type === 'LIVE' ? <Video size={16} className="text-marigold-500" /> : <Film size={16} className="text-dusk-500" />}
+            </div>
           )}
-          {r.videoUrl && <Film size={14} className="shrink-0 text-dusk-500" />}
-          <span className="max-w-xs truncate font-medium text-ink">
+          <span className="max-w-[200px] truncate font-medium text-ink">
             {r.title}
           </span>
         </div>
       ),
     },
+    { 
+      key: "type", 
+      header: "Type", 
+      render: (r) => (
+        <Badge tone={r.session_type === 'LIVE' ? 'warning' : 'info'}>
+          {r.session_type === 'LIVE' ? 'Live' : 'Recorded'}
+        </Badge>
+      )
+    },
     { key: "price", header: "Price", render: (r) => currency(r.price) },
-    { key: "bookings", header: "Bookings" },
     {
       key: "status",
       header: "Status",
       render: (r) => (
-        <Badge tone={meta(r.status).tone}>{meta(r.status).label}</Badge>
+        <Badge tone={meta(r.status).tone}>{r.status}</Badge>
       ),
     },
     {
-      key: "video",
-      header: "Video",
-      render: (r) =>
-        r.videoUrl ? (
-          <Badge tone={meta(r.videoStatus).tone}>
-            {meta(r.videoStatus).label}
-          </Badge>
-        ) : (
-          <span className="text-xs text-ink-soft">—</span>
-        ),
-    },
-    {
       key: "createdOn",
-      header: "Updated",
-      render: (r) => formatDate(r.createdOn),
+      header: "Created",
+      render: (r) => formatDate(r.created_at || r.createdOn),
     },
     {
       key: "actions",
       header: "",
       render: (r) => (
-        <div className="flex items-center gap-1">
-          {(r.status === "draft" || r.status === "needs_changes") && (
-            <Button
-              variant="ghost"
-              className="!px-2 !py-1 text-xs"
-              onClick={() => openEdit(r)}
-            >
-              <Pencil size={13} /> Edit
-            </Button>
-          )}
-          {r.status === "draft" && (
-            <Button
-              variant="accent"
-              className="!px-2 !py-1 text-xs"
-              onClick={() => submitForReview(r)}
-            >
-              <Send size={13} /> Submit
-            </Button>
-          )}
-          {(r.status === "approved" ||
-            r.status === "live" ||
-            r.status === "pending_review" ||
-            r.status === "rejected") && (
-            <Button
-              variant="ghost"
-              className="!px-2 !py-1 text-xs"
-              onClick={() => setDetailOpen(r)}
-            >
-              View
-            </Button>
-          )}
+        <div className="flex items-center gap-1 justify-end">
+          <Button
+            variant="ghost"
+            className="!px-2 !py-1 text-xs"
+            onClick={() => setDetailOpen(r)}
+          >
+            View
+          </Button>
+          <Button
+            variant="ghost"
+            className="!px-2 !py-1 text-xs"
+            onClick={() => openEdit(r)}
+          >
+            <Pencil size={13} /> Edit
+          </Button>
+          <Button
+            variant="ghost"
+            className="!px-2 !py-1 text-xs !text-rose-600 hover:!bg-rose-50"
+            onClick={() => handleDelete(r.id)}
+          >
+            <Trash2 size={13} /> Delete
+          </Button>
         </div>
       ),
     },
@@ -245,22 +246,44 @@ export default function Services() {
     <div>
       <PageHeader
         title="My Sessions"
-        subtitle="Recorded sessions, courses, workshops, and consultations you offer."
+        subtitle="Manage your Live Consultations and Recorded Courses."
         action={
-          <Button onClick={openAdd}>
-            <Plus size={16} /> New Session
-          </Button>
+          <div className="flex items-center gap-4">
+            <div className="flex bg-canvas-alt rounded-lg p-1 border border-dusk-100">
+              {['ALL', 'LIVE', 'RECORDED'].map(type => (
+                <button
+                  key={type}
+                  onClick={() => setFilterType(type)}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
+                    filterType === type 
+                      ? 'bg-white text-ink shadow-sm' 
+                      : 'text-ink-soft hover:text-ink'
+                  }`}
+                >
+                  {type === 'ALL' ? 'All' : type === 'LIVE' ? 'Live' : 'Recorded'}
+                </button>
+              ))}
+            </div>
+            <Button onClick={openAdd}>
+              <Plus size={16} /> New Session
+            </Button>
+          </div>
         }
       />
 
-      {!isLoading && mine.length === 0 ? (
+      {!isLoading && filteredSessions.length === 0 ? (
         <EmptyState
           icon={BadgeCheck}
-          title="No sessions yet"
-          message="Post your first session — save as draft, then submit it for admin approval."
+          title={filterType === "ALL" ? "No sessions yet" : `No ${filterType.toLowerCase()} sessions`}
+          message={filterType === "ALL" ? "Create your first Live Session or Recorded Course." : `You don't have any ${filterType.toLowerCase()} sessions yet.`}
+          action={
+            <Button onClick={openAdd}>
+              <Plus size={16} /> Create Session
+            </Button>
+          }
         />
       ) : (
-        <DataTable columns={columns} data={mine} isLoading={isLoading} />
+        <DataTable columns={columns} data={filteredSessions} isLoading={isLoading} />
       )}
 
       <Modal
@@ -270,23 +293,35 @@ export default function Services() {
         width="max-w-2xl"
       >
         <form onSubmit={handleSubmit}>
-          <Field label="Title">
-            <input
-              required
-              className={inputCls}
-              value={form.title}
-              onChange={(e) => setForm({ ...form, title: e.target.value })}
-              placeholder="e.g. Reiki Healing for Deep Relaxation"
-            />
-          </Field>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Field label="Title">
+              <input
+                required
+                className={inputCls}
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                placeholder="e.g. Reiki Healing for Deep Relaxation"
+              />
+            </Field>
+            <Field label="Thumbnail URL">
+              <input
+                className={inputCls}
+                value={form.thumbnail}
+                onChange={(e) => setForm({ ...form, thumbnail: e.target.value })}
+                placeholder="https://image-url.jpg"
+              />
+            </Field>
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Type">
+            <Field label="Session Type">
               <select
                 className={inputCls}
-                value={form.type}
-                onChange={(e) => setForm({ ...form, type: e.target.value })}
+                value={form.session_type}
+                onChange={(e) => setForm({ ...form, session_type: e.target.value })}
+                disabled={!!editing} // Often shouldn't change type after creation
               >
-                {typeOptions.map((t) => (
+                {sessionTypeOptions.map((t) => (
                   <option key={t.value} value={t.value}>
                     {t.label}
                   </option>
@@ -297,8 +332,8 @@ export default function Services() {
               <select
                 required
                 className={inputCls}
-                value={form.category}
-                onChange={(e) => setForm({ ...form, category: e.target.value })}
+                value={form.category_id}
+                onChange={(e) => setForm({ ...form, category_id: e.target.value })}
               >
                 <option value="">Select category</option>
                 {categories.map((c) => (
@@ -309,33 +344,28 @@ export default function Services() {
               </select>
             </Field>
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          
+          <div className="grid grid-cols-2 gap-3">
             <Field label="Price (₹)">
               <input
                 required
                 type="number"
+                min="0"
                 className={inputCls}
                 value={form.price}
                 onChange={(e) => setForm({ ...form, price: e.target.value })}
               />
             </Field>
-            <Field label="Duration (min)">
+            <Field label="Language">
               <input
-                type="number"
                 className={inputCls}
-                value={form.duration}
-                onChange={(e) => setForm({ ...form, duration: e.target.value })}
-              />
-            </Field>
-            <Field label="Max seats">
-              <input
-                type="number"
-                className={inputCls}
-                value={form.maxSeats}
-                onChange={(e) => setForm({ ...form, maxSeats: e.target.value })}
+                value={form.language}
+                onChange={(e) => setForm({ ...form, language: e.target.value })}
+                placeholder="e.g. English, Hindi"
               />
             </Field>
           </div>
+          
           <Field label="Description">
             <textarea
               required
@@ -348,98 +378,70 @@ export default function Services() {
             />
           </Field>
 
-          <div className="mb-4 rounded-xl border border-dusk-100 bg-canvas-alt/50 p-4">
-            <p className="mb-3 text-sm font-medium text-ink">Recorded video</p>
-            {form.videoUrl ? (
-              <div>
-                <video
-                  src={form.videoUrl}
-                  controls
-                  className="w-full max-h-56 rounded-lg bg-black"
-                />
-                <div className="mt-2 flex items-center justify-between">
-                  <span className="flex items-center gap-1.5 text-xs text-ink-soft">
-                    <Film size={13} />{" "}
-                    {form.videoFileName || "Uploaded recording"}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={removeVideo}
-                    className="flex items-center gap-1 text-xs font-medium text-rose-700 hover:underline"
-                  >
-                    <X size={12} /> Remove
-                  </button>
-                </div>
-                {form.videoStatus === "pending_review" && (
-                  <p className="mt-1.5 text-xs text-marigold-700">
-                    This recording is awaiting admin review before it can go
-                    live.
-                  </p>
-                )}
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="flex w-full flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-dusk-100 py-6 text-ink-soft hover:border-dusk-300 hover:text-ink"
-              >
-                <UploadCloud size={20} />
-                <span className="text-sm font-medium">
-                  Upload a recorded video
-                </span>
-                <span className="text-xs">
-                  MP4, MOV — admin reviews it before it goes live
-                </span>
-              </button>
-            )}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="video/*"
-              className="hidden"
-              onChange={handleVideoSelect}
-            />
-          </div>
-
-          <label className="mb-4 flex items-center gap-2.5 rounded-xl border border-dusk-100 bg-canvas-alt/50 p-4">
-            <input
-              type="checkbox"
-              className="h-4 w-4 rounded border-dusk-300 text-dusk-700 focus:ring-dusk-500"
-              checked={form.hasLiveComponent}
-              onChange={(e) =>
-                setForm({ ...form, hasLiveComponent: e.target.checked })
-              }
-            />
-            <span className="text-sm font-medium text-ink">
-              This session also includes a live component
-            </span>
-          </label>
-
-          {form.hasLiveComponent && (
-            <div className="rounded-xl border border-dusk-100 bg-canvas-alt/50 p-4">
-              <p className="mb-3 text-sm font-medium text-ink">
-                Live session details
+          {form.session_type === "LIVE" && (
+            <div className="rounded-xl border border-marigold-100 bg-marigold-50/30 p-4 mb-4">
+              <p className="mb-3 text-sm font-medium text-marigold-900 flex items-center gap-2">
+                <Video size={16} /> Live Session Details
               </p>
-              <Field label="Scheduled date & time">
-                <input
-                  type="datetime-local"
-                  className={inputCls}
-                  value={form.scheduledAt}
-                  onChange={(e) =>
-                    setForm({ ...form, scheduledAt: e.target.value })
-                  }
-                />
-              </Field>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Start Time">
+                  <input
+                    type="datetime-local"
+                    className={inputCls}
+                    required={form.session_type === "LIVE"}
+                    value={form.start_time}
+                    onChange={(e) =>
+                      setForm({ ...form, start_time: e.target.value })
+                    }
+                  />
+                </Field>
+                <Field label="End Time">
+                  <input
+                    type="datetime-local"
+                    className={inputCls}
+                    required={form.session_type === "LIVE"}
+                    value={form.end_time}
+                    onChange={(e) =>
+                      setForm({ ...form, end_time: e.target.value })
+                    }
+                  />
+                </Field>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Duration (minutes)">
+                  <input
+                    type="number"
+                    min="1"
+                    className={inputCls}
+                    value={form.duration_minutes}
+                    onChange={(e) =>
+                      setForm({ ...form, duration_minutes: e.target.value })
+                    }
+                  />
+                </Field>
+                <Field label="Max Participants">
+                  <input
+                    type="number"
+                    min="1"
+                    className={inputCls}
+                    value={form.max_participants}
+                    onChange={(e) =>
+                      setForm({ ...form, max_participants: e.target.value })
+                    }
+                  />
+                </Field>
+              </div>
               <Field
-                label="Google Meet link"
-                hint="Create a meeting at meet.google.com/new, then paste the link here."
+                label="Meeting Link (Google Meet / Zoom)"
+                hint="Paste the meeting URL for the participants to join."
               >
                 <div className="flex gap-2">
                   <input
                     className={inputCls}
-                    value={form.meetLink}
+                    required={form.session_type === "LIVE"}
+                    value={form.meeting_link}
                     onChange={(e) =>
-                      setForm({ ...form, meetLink: e.target.value })
+                      setForm({ ...form, meeting_link: e.target.value })
                     }
                     placeholder="https://meet.google.com/xxx-xxxx-xxx"
                   />
@@ -450,10 +452,37 @@ export default function Services() {
                       window.open("https://meet.google.com/new", "_blank")
                     }
                   >
-                    <Video size={14} /> Create
+                    Create
                   </Button>
                 </div>
               </Field>
+            </div>
+          )}
+
+          {form.session_type === "RECORDED" && (
+            <div className="rounded-xl border border-dusk-100 bg-canvas-alt/50 p-4 mb-4">
+              <p className="mb-3 text-sm font-medium text-ink flex items-center gap-2">
+                <Film size={16} /> Recorded Video Details
+              </p>
+              <Field label="Video URL">
+                <input
+                  required={form.session_type === "RECORDED"}
+                  className={inputCls}
+                  value={form.video_url}
+                  onChange={(e) => setForm({ ...form, video_url: e.target.value })}
+                  placeholder="https://..."
+                />
+              </Field>
+              {form.video_url && (
+                <div className="mt-3">
+                  <p className="text-xs text-ink-soft mb-1">Preview:</p>
+                  <video 
+                    src={form.video_url} 
+                    controls 
+                    className="w-full max-h-48 rounded-lg bg-black object-contain"
+                  />
+                </div>
+              )}
             </div>
           )}
 
@@ -466,7 +495,7 @@ export default function Services() {
               Cancel
             </Button>
             <Button type="submit">
-              {editing ? "Save changes" : "Save as draft"}
+              {editing ? "Save changes" : "Create Session"}
             </Button>
           </div>
         </form>
@@ -479,52 +508,69 @@ export default function Services() {
       >
         {detailOpen && (
           <div>
-            <StatusStepper
-              steps={steps}
-              currentStatus={
-                detailOpen.status === "pending_review"
-                  ? "pending_review"
-                  : detailOpen.status
-              }
-              rejected={detailOpen.status === "rejected"}
-              reviewNote={detailOpen.reviewNote}
-            />
-            <p className="mt-5 text-sm text-ink">{detailOpen.description}</p>
-
-            {detailOpen.videoUrl && (
-              <div className="mt-4">
-                <div className="mb-1.5 flex items-center justify-between">
-                  <span className="text-sm font-medium text-ink">
-                    Recorded video
-                  </span>
-                  <Badge tone={meta(detailOpen.videoStatus).tone}>
-                    {meta(detailOpen.videoStatus).label}
+            <div className="flex gap-4 items-start mb-4">
+              {detailOpen.thumbnail && (
+                <img src={detailOpen.thumbnail} alt="" className="w-32 h-24 object-cover rounded-xl border border-dusk-100" />
+              )}
+              <div>
+                <div className="flex gap-2 items-center mb-1">
+                  <Badge tone={detailOpen.session_type === 'LIVE' ? 'warning' : 'info'}>
+                    {detailOpen.session_type}
                   </Badge>
+                  <Badge tone={meta(detailOpen.status).tone}>{detailOpen.status}</Badge>
                 </div>
+                <p className="text-xl font-bold text-ink">{detailOpen.title}</p>
+                <p className="text-sm font-medium text-ink-soft mt-1">
+                  {currency(detailOpen.price)} · {detailOpen.language}
+                </p>
+              </div>
+            </div>
+
+            <p className="mt-2 mb-5 text-sm text-ink whitespace-pre-wrap">{detailOpen.description}</p>
+
+            {detailOpen.session_type === "RECORDED" && detailOpen.video_url && (
+              <div className="mt-4">
+                <p className="mb-2 text-sm font-medium text-ink">Recorded Video</p>
                 <video
-                  src={detailOpen.videoUrl}
+                  src={detailOpen.video_url}
                   controls
-                  className="w-full max-h-56 rounded-lg bg-black"
+                  className="w-full max-h-56 rounded-lg bg-black object-contain"
                 />
-                {detailOpen.videoReviewNote && (
-                  <p className="mt-2 rounded-lg bg-rose-100 px-3 py-2 text-xs text-rose-700">
-                    <span className="font-semibold">Admin note: </span>
-                    {detailOpen.videoReviewNote}
-                  </p>
-                )}
               </div>
             )}
 
-            {detailOpen.hasLiveComponent && detailOpen.meetLink && (
-              <a
-                href={detailOpen.meetLink}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-4 flex w-fit items-center gap-1.5 rounded-lg bg-dusk-50 px-3 py-1.5 text-xs font-medium text-dusk-700 hover:bg-dusk-100"
-              >
-                <Video size={14} /> {detailOpen.meetLink}{" "}
-                <ExternalLink size={12} />
-              </a>
+            {detailOpen.session_type === "LIVE" && (
+              <div className="mt-4 grid grid-cols-2 gap-4 bg-canvas-alt p-4 rounded-xl border border-dusk-50">
+                <div>
+                  <p className="text-xs text-ink-soft mb-0.5">Start Time</p>
+                  <p className="text-sm font-semibold">{formatDate(detailOpen.start_time)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-ink-soft mb-0.5">End Time</p>
+                  <p className="text-sm font-semibold">{formatDate(detailOpen.end_time)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-ink-soft mb-0.5">Duration</p>
+                  <p className="text-sm font-semibold">{detailOpen.duration_minutes ? `${detailOpen.duration_minutes} min` : '-'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-ink-soft mb-0.5">Max Participants</p>
+                  <p className="text-sm font-semibold">{detailOpen.max_participants || '-'}</p>
+                </div>
+                {detailOpen.meeting_link && (
+                  <div className="col-span-2 mt-2">
+                    <p className="text-xs text-ink-soft mb-1">Meeting Link</p>
+                    <a
+                      href={detailOpen.meeting_link}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex w-fit items-center gap-1.5 rounded-lg bg-dusk-50 px-3 py-2 text-sm font-medium text-dusk-700 hover:bg-dusk-100 transition-colors"
+                    >
+                      <Video size={16} /> {detailOpen.meeting_link} <ExternalLink size={14} />
+                    </a>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         )}

@@ -35,18 +35,20 @@ export const categoryApi = createApi({
       invalidatesTags: ['Category'],
     }),
     updateCategory: builder.mutation({
-      query: ({ id, ...body }) => ({
-        url: `/categories/update/${id}`,
-        method: 'PUT',
-        body,
-      }),
+      query: (payload) => {
+        const id = payload instanceof FormData ? payload.get('id') : payload.id;
+        return {
+          url: `/categories/update/${id}`,
+          method: 'PUT',
+          body: payload,
+        };
+      },
       invalidatesTags: ['Category'],
     }),
     deleteCategory: builder.mutation({
-      query: (ids) => ({
-        url: '/categories/delete',
-        method: 'POST',
-        body: { ids: Array.isArray(ids) ? ids : [ids] },
+      query: (id) => ({
+        url: `/categories/delete/${id}`,
+        method: 'DELETE',
       }),
       invalidatesTags: ['Category'],
     }),
