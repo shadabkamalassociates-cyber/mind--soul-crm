@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, Pencil, Trash2, UserPlus } from 'lucide-react'
+import { Search, Pencil, Trash2, UserPlus, Star, CheckCircle2, IndianRupee } from 'lucide-react'
 import {
   useGetExpertsQuery,
   useLazyGetExpertQuery,
@@ -35,7 +35,6 @@ const emptyForm = {
   bio: '',
   experience_years: '',
   consultation_fee: '',
-  verification_status: 'PENDING',
   alternate_phone: '',
   profile_image: '',
   cover_image: '',
@@ -122,7 +121,6 @@ export default function Experts() {
       bio: expert.bio || '',
       experience_years: expert.experience_years ?? '',
       consultation_fee: expert.consultation_fee ?? '',
-      verification_status: (expert.verification_status || expert.status || 'PENDING').toUpperCase(),
       alternate_phone: expert.alternate_phone || '',
       profile_image: expert.profile_image || '',
       cover_image: expert.cover_image || '',
@@ -224,6 +222,26 @@ export default function Experts() {
     },
     { key: 'skillTags', header: 'Categories / Skills', render: (r) => <span className="text-ink-soft">{Array.isArray(r.skillTags) ? r.skillTags.join(', ') : '—'}</span> },
     { key: 'experience', header: 'Experience', render: (r) => r.experience || '—' },
+    { key: 'stats', header: 'Stats', render: (r) => (
+        <div className="flex flex-col gap-1 text-xs">
+          <div className="flex items-center gap-1.5 text-ink-soft">
+            <Star size={12} className="text-marigold-500 fill-marigold-500" />
+            <span>{r.average_rating || '0.00'}</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-ink-soft">
+            <CheckCircle2 size={12} className="text-sage-500" />
+            <span>{r.total_sessions || 0} sessions</span>
+          </div>
+        </div>
+      )
+    },
+    { key: 'fee', header: 'Fee', render: (r) => (
+        <div className="flex items-center gap-1 text-ink-soft">
+          <IndianRupee size={12} />
+          <span>{r.consultation_fee || '0'}</span>
+        </div>
+      )
+    },
     { key: 'appliedOn', header: 'Applied', render: (r) => formatDate(r.appliedOn || r.created_at) },
     { key: 'status', header: 'Status', render: (r) => <Badge tone={meta(r.status).tone}>{meta(r.status).label}</Badge> },
     {

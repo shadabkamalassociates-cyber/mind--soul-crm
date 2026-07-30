@@ -34,7 +34,7 @@ export const expertApi = createApi({
             const lastName = e.last_name || ''
             const fullName = `${firstName} ${lastName}`.trim() || 'Demo Expert'
             const rawStatus = (e.verification_status || 'PENDING').toLowerCase()
-            const status = rawStatus === 'pending' ? 'pending' : rawStatus === 'approved' ? 'approved' : rawStatus === 'rejected' ? 'rejected' : rawStatus === 'needs_changes' ? 'needs_changes' : rawStatus
+            const status = rawStatus === 'pending' ? 'pending' : (rawStatus === 'approved' || rawStatus === 'verified') ? 'approved' : rawStatus === 'rejected' ? 'rejected' : rawStatus === 'needs_changes' ? 'needs_changes' : rawStatus
 
             return {
               ...e,
@@ -105,7 +105,7 @@ export const expertApi = createApi({
         const lastName = item.last_name || ''
         const fullName = `${firstName} ${lastName}`.trim() || 'Demo Expert'
         const rawStatus = (item.verification_status || 'PENDING').toLowerCase()
-        const status = rawStatus === 'pending' ? 'pending' : rawStatus === 'approved' ? 'approved' : rawStatus === 'rejected' ? 'rejected' : rawStatus === 'needs_changes' ? 'needs_changes' : rawStatus
+        const status = rawStatus === 'pending' ? 'pending' : (rawStatus === 'approved' || rawStatus === 'verified') ? 'approved' : rawStatus === 'rejected' ? 'rejected' : rawStatus === 'needs_changes' ? 'needs_changes' : rawStatus
 
         return {
           ...item,
