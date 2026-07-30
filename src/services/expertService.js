@@ -226,6 +226,7 @@ export const expertApi = createApi({
 export const {
   useGetExpertsQuery,
   useGetExpertQuery,
+  useLazyGetExpertQuery,
   useUpdateExpertStatusMutation,
   useUpdateExpertMutation,
   useDeleteExpertMutation,

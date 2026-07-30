@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Search, Pencil, Trash2, UserPlus } from 'lucide-react'
 import {
   useGetExpertsQuery,
+  useLazyGetExpertQuery,
   useUpdateExpertMutation,
   useDeleteExpertMutation,
   useExpertSignUpMutation,
@@ -14,6 +15,7 @@ import Modal from '../../components/Modal'
 import ExpertFormFields, {
   ExpertFormTabBar,
   buildExpertRegisterFormData,
+  buildExpertUpdateFormData,
 } from '../../components/ExpertFormFields'
 import { meta, formatDate } from '../../utils/status'
 
@@ -67,6 +69,7 @@ const emptyRegisterForm = {
 
 export default function Experts() {
   const { data: experts = [], isLoading } = useGetExpertsQuery()
+  const [getExpert] = useLazyGetExpertQuery()
   const [updateExpert, { isLoading: isUpdating }] = useUpdateExpertMutation()
   const [deleteExpert, { isLoading: isDeleting }] = useDeleteExpertMutation()
   const [expertSignUp, { isLoading: isRegistering }] = useExpertSignUpMutation()
@@ -98,9 +101,19 @@ export default function Experts() {
       })
   }, [experts, tab, search])
 
-  const openEdit = (e, expert) => {
+  const openEdit = async (e, expert) => {
     e.stopPropagation()
     setEditingExpert(expert)
+    
+    try {
+      const fullExpert = await getExpert(expert.id).unwrap()
+      if (fullExpert) {
+        expert = fullExpert
+      }
+    } catch (err) {
+      console.error('Failed to fetch full expert details', err)
+    }
+
     setForm({
       first_name: expert.first_name || expert.name?.split(' ')[0] || '',
       last_name: expert.last_name || expert.name?.split(' ').slice(1).join(' ') || '',
@@ -176,22 +189,11 @@ export default function Experts() {
     e.preventDefault()
     if (!editingExpert) return
 
-    const payload = {
-      first_name: form.first_name,
-      last_name: form.last_name || '',
-      email: form.email,
-      phone: form.phone,
-      bio: form.bio || '',
-      experience_years: form.experience_years ? Number(form.experience_years) : null,
-      consultation_fee: form.consultation_fee !== undefined && form.consultation_fee !== '' ? Number(form.consultation_fee) : 0,
-      profile_image: form.profile_image || null,
-      status: form.status || 'pending',
-      verification_status: form.verification_status || 'PENDING',
-    }
+    const formData = buildExpertUpdateFormData(form)
 
     await updateExpert({
       id: editingExpert.id,
-      ...payload,
+      formData,
     })
     setEditingExpert(null)
   }

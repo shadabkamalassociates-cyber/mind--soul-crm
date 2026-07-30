@@ -439,3 +439,60 @@ export function buildExpertRegisterFormData(form) {
 
   return formData
 }
+
+export function buildExpertUpdateFormData(form) {
+  const cleanPhone = (form.phone || '').trim().replace(/[^\d]/g, '')
+  const formData = new FormData()
+
+  formData.append('first_name', form.first_name)
+  formData.append('last_name', form.last_name || '')
+  formData.append('email', form.email)
+  formData.append('phone', cleanPhone || '')
+  formData.append('alternate_phone', form.alternate_phone || '')
+  formData.append('bio', form.bio || '')
+
+  if (form.experience_years !== '' && form.experience_years != null) {
+    formData.append('experience_years', String(Number(form.experience_years)))
+  } else {
+    formData.append('experience_years', '0')
+  }
+
+  if (form.consultation_fee !== '' && form.consultation_fee != null) {
+    formData.append('consultation_fee', String(Number(form.consultation_fee)))
+  } else {
+    formData.append('consultation_fee', '0')
+  }
+
+  formData.append('country', form.country || '')
+  formData.append('timezone', form.timezone || '')
+  formData.append('professional_title', form.professional_title || '')
+  formData.append('profession', form.profession || '')
+  formData.append('whatsapp_number', form.whatsapp_number || '')
+  formData.append('city', form.city || '')
+  formData.append('state', form.state || '')
+  formData.append('education', form.education || '')
+  formData.append(
+    'certifications',
+    (form.certificationsValue ?? form.certifications ?? '').trim()
+  )
+  formData.append('specialization', form.specialization || '')
+  formData.append('languages', form.languagesArray ?? form.languages ?? '')
+  formData.append('about', form.about || '')
+  formData.append('why_started', form.why_started || '')
+  formData.append('mission', form.mission || '')
+  formData.append('client_approach', form.client_approach || '')
+  formData.append('uniqueness', form.uniqueness || '')
+
+  formData.append('status', form.verification_status || 'PENDING')
+  formData.append('verification_status', form.verification_status || 'PENDING')
+  formData.append('profile_completed', form.profile_completed ? 'true' : 'false')
+
+  if (form.profile_image_file) {
+    formData.append('profile_image', form.profile_image_file)
+  }
+  if (form.cover_image_file) {
+    formData.append('cover_image', form.cover_image_file)
+  }
+
+  return formData
+}
