@@ -87,9 +87,6 @@ export default function ExpertDetail() {
 
   const handleVerify = async () => {
     try {
-      console.log(expert.id)
-      console.log(verifyAction.status)
-      console.log(verifyReason)
       await verifyExpert({
         id: expert.id,
         user_id: expert.id,
@@ -124,7 +121,6 @@ export default function ExpertDetail() {
   }
 
   const verStat = (expert.verification_status || 'PENDING').toUpperCase()
-  const canVerify = verStat !== 'VERIFIED'
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
@@ -210,31 +206,51 @@ export default function ExpertDetail() {
       </div>
 
       {/* Verification Action Bar */}
-      {canVerify && (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <AlertCircle size={18} className="text-amber-600 shrink-0" />
-            <div>
-              <p className="text-sm font-semibold text-amber-900">Verification Required</p>
-              <p className="text-xs text-amber-700">
-                Current status: <strong>{verificationLabel(expert.verification_status)}</strong>
-                {expert.reviewNote && ` — "${expert.reviewNote}"`}
-              </p>
-            </div>
+      <div className={`rounded-2xl border p-4 flex flex-wrap items-center justify-between gap-4 ${
+        verStat === 'VERIFIED' ? 'border-sage-200 bg-sage-50' :
+        verStat === 'REJECTED' ? 'border-rose-200 bg-rose-50' :
+        'border-amber-200 bg-amber-50'
+      }`}>
+        <div className="flex items-center gap-3">
+          <AlertCircle size={18} className={`shrink-0 ${
+            verStat === 'VERIFIED' ? 'text-sage-600' :
+            verStat === 'REJECTED' ? 'text-rose-600' :
+            'text-amber-600'
+          }`} />
+          <div>
+            <p className={`text-sm font-semibold ${
+              verStat === 'VERIFIED' ? 'text-sage-900' :
+              verStat === 'REJECTED' ? 'text-rose-900' :
+              'text-amber-900'
+            }`}>
+              {verStat === 'VERIFIED' ? 'Expert Verified' : 
+               verStat === 'REJECTED' ? 'Expert Rejected' : 
+               'Verification Required'}
+            </p>
+            <p className={`text-xs ${
+              verStat === 'VERIFIED' ? 'text-sage-700' :
+              verStat === 'REJECTED' ? 'text-rose-700' :
+              'text-amber-700'
+            }`}>
+              Current status: <strong>{verificationLabel(expert.verification_status)}</strong>
+              {expert.reviewNote && ` — "${expert.reviewNote}"`}
+            </p>
           </div>
-          <div className="flex flex-wrap gap-2">
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {verStat !== 'VERIFIED' && (
             <Button variant="success" disabled={isVerifying} onClick={() => openVerify('VERIFIED', 'Application approved by admin.')}>
               <CheckCircle2 size={15} /> Approve & Verify
             </Button>
-            <Button variant="ghost" disabled={isVerifying} onClick={() => openVerify('NEEDS_CHANGES', '')}>
-              <RotateCcw size={15} /> Request Changes
-            </Button>
+          )}
+
+          {verStat !== 'REJECTED' && (
             <Button variant="danger" disabled={isVerifying} onClick={() => openVerify('REJECTED', 'Application rejected by admin.')}>
               <XCircle size={15} /> Reject
             </Button>
-          </div>
+          )}
         </div>
-      )}
+      </div>
 
       {/* Tabs */}
       <div className="flex border-b border-dusk-100">
