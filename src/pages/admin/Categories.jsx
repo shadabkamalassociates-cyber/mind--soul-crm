@@ -23,11 +23,12 @@ export default function Categories() {
   const { data: categories = [], isLoading } = useGetCategoriesQuery();
   const [addCategory] = useAddCategoryMutation();
   const [updateCategory] = useUpdateCategoryMutation();
-  const [deleteCategory] = useDeleteCategoryMutation();
+  const [deleteCategory, { isLoading: isDeleting }] = useDeleteCategoryMutation();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm);
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
 
   const openAdd = () => {
     setEditing(null);
@@ -135,7 +136,7 @@ export default function Categories() {
             <Pencil size={15} />
           </button>
           <button
-            onClick={() => deleteCategory(r.id)}
+            onClick={() => setDeleteConfirmId(r.id)}
             className="rounded-lg p-1.5 text-ink-soft hover:bg-rose-100 hover:text-rose-700"
             title="Delete Category"
           >
@@ -223,6 +224,36 @@ export default function Categories() {
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        open={!!deleteConfirmId}
+        onClose={() => setDeleteConfirmId(null)}
+        title="Delete Category"
+      >
+        <p className="text-sm text-ink-soft">
+          Are you sure you want to delete this category? This action cannot be undone.
+        </p>
+        <div className="mt-5 flex justify-end gap-2">
+          <Button variant="ghost" onClick={() => setDeleteConfirmId(null)}>
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            disabled={isDeleting}
+            onClick={async () => {
+              try {
+                await deleteCategory(deleteConfirmId).unwrap();
+                setDeleteConfirmId(null);
+              } catch (err) {
+                console.error("Failed to delete category", err);
+              }
+            }}
+          >
+            {isDeleting ? "Deleting..." : "Delete Category"}
+          </Button>
+        </div>
       </Modal>
     </div>
   );
