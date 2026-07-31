@@ -4,7 +4,7 @@ export const categoryApi = createApi({
   reducerPath: 'categoryApi',
   baseQuery: fetchBaseQuery({
     credentials: 'include',
-    baseUrl: '/api',
+    baseUrl: 'https://backend.apnasmartgate.com/api',
   }),
   tagTypes: ['Category'],
   endpoints: (builder) => ({

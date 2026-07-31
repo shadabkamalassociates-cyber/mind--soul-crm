@@ -3,8 +3,8 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const blogApi = createApi({
   reducerPath: "blogApi",
   baseQuery: fetchBaseQuery({
-    credentials: "include",
-    baseUrl: "/api",
+    credentials: 'include',
+    baseUrl: 'https://backend.apnasmartgate.com/api',
   }),
   tagTypes: ["Blog", "BlogCategory"],
   endpoints: (builder) => ({

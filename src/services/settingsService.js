@@ -4,7 +4,7 @@ export const settingsApi = createApi({
   reducerPath: 'settingsApi',
   baseQuery: fetchBaseQuery({
     credentials: 'include',
-    baseUrl: '/api',
+    baseUrl: 'https://backend.apnasmartgate.com/api',
   }),
   tagTypes: ['Settings'],
   endpoints: (builder) => ({

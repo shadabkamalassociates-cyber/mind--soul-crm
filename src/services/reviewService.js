@@ -4,7 +4,7 @@ export const reviewApi = createApi({
   reducerPath: 'reviewApi',
   baseQuery: fetchBaseQuery({
     credentials: 'include',
-    baseUrl: '/api',
+    baseUrl: 'https://backend.apnasmartgate.com/api',
   }),
   tagTypes: ['Review'],
   endpoints: (builder) => ({

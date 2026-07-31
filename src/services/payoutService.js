@@ -4,7 +4,7 @@ export const payoutApi = createApi({
   reducerPath: 'payoutApi',
   baseQuery: fetchBaseQuery({
     credentials: 'include',
-    baseUrl: '/api',
+    baseUrl: 'https://backend.apnasmartgate.com/api',
   }),
   tagTypes: ['Payout'],
   endpoints: (builder) => ({

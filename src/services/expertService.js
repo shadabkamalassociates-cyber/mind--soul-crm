@@ -21,7 +21,7 @@ export const expertApi = createApi({
   reducerPath: 'expertApi',
   baseQuery: fetchBaseQuery({
     credentials: 'include',
-    baseUrl: '/api',
+    baseUrl: 'https://backend.apnasmartgate.com/api',
   }),
   tagTypes: ['Expert'],
   endpoints: (builder) => ({

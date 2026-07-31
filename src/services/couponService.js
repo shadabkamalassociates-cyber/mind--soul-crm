@@ -4,7 +4,7 @@ export const couponApi = createApi({
   reducerPath: 'couponApi',
   baseQuery: fetchBaseQuery({
     credentials: 'include',
-    baseUrl: '/api',
+    baseUrl: 'https://backend.apnasmartgate.com/api',
   }),
   tagTypes: ['Coupon'],
   endpoints: (builder) => ({
