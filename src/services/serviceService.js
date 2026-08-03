@@ -1,78 +1,96 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export const serviceApi = createApi({
-  reducerPath: 'serviceApi',
+  reducerPath: "serviceApi",
   baseQuery: fetchBaseQuery({
-    credentials: 'include',
-    baseUrl: 'https://backend.apnasmartgate.com/api',
+    credentials: "include",
+    baseUrl: "https://backend.apnasmartgate.com/api",
   }),
-  tagTypes: ['Service', 'Session'],
+  tagTypes: ["Service", "Session"],
   endpoints: (builder) => ({
     getServices: builder.query({
-      query: () => ({ url: '/services', method: 'GET' }),
-      providesTags: ['Service'],
+      query: () => ({ url: "/services", method: "GET" }),
+      providesTags: ["Service"],
     }),
     getAllSessions: builder.query({
-      query: () => ({ url: '/sessions/fetch-all', method: 'GET' }),
+      query: () => ({ url: "/sessions/fetch-all", method: "GET" }),
       transformResponse: (response) => response.data || response,
-      providesTags: ['Session'],
+      providesTags: ["Session"],
     }),
     getSessionsByExpert: builder.query({
       query: (expertId) => `/sessions/fetch-by-expert/${expertId}`,
       transformResponse: (response) => response.data || response,
-      providesTags: (r, e, expertId) => [{ type: 'Session', id: expertId }, 'Session'],
+      providesTags: (r, e, expertId) => [
+        { type: "Session", id: expertId },
+        "Session",
+      ],
     }),
     getService: builder.query({
-      query: (id) => ({ url: `/services/${id}`, method: 'GET' }),
-      providesTags: (r, e, id) => [{ type: 'Service', id }],
+      query: (id) => ({ url: `/services/${id}`, method: "GET" }),
+      providesTags: (r, e, id) => [{ type: "Service", id }],
     }),
     getSession: builder.query({
-      query: (id) => ({ url: `/sessions/fetch/${id}`, method: 'GET' }),
+      query: (id) => ({ url: `/sessions/fetch/${id}`, method: "GET" }),
       transformResponse: (response) => response.data || response,
-      providesTags: (r, e, id) => [{ type: 'Session', id }],
+      providesTags: (r, e, id) => [{ type: "Session", id }],
     }),
     addService: builder.mutation({
-      query: (body) => ({ url: '/services', method: 'POST', body }),
-      invalidatesTags: ['Service'],
+      query: (body) => ({ url: "/services", method: "POST", body }),
+      invalidatesTags: ["Service"],
     }),
     updateService: builder.mutation({
-      query: ({ id, ...body }) => ({ url: `/services/${id}`, method: 'PATCH', body }),
-      invalidatesTags: ['Service'],
+      query: ({ id, ...body }) => ({
+        url: `/services/${id}`,
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: ["Service"],
     }),
     updateServiceStatus: builder.mutation({
-      query: ({ id, status, reviewNote }) => ({ url: `/services/${id}/status`, method: 'PATCH', body: { status, reviewNote } }),
-      invalidatesTags: ['Service'],
+      query: ({ id, status, reviewNote }) => ({
+        url: `/services/${id}/status`,
+        method: "PATCH",
+        body: { status, reviewNote },
+      }),
+      invalidatesTags: ["Service"],
     }),
     updateServiceVideoStatus: builder.mutation({
-      query: ({ id, videoStatus, videoReviewNote }) => ({ url: `/services/${id}/video-status`, method: 'PATCH', body: { videoStatus, videoReviewNote } }),
-      invalidatesTags: ['Service'],
+      query: ({ id, videoStatus, videoReviewNote }) => ({
+        url: `/services/${id}/video-status`,
+        method: "PATCH",
+        body: { videoStatus, videoReviewNote },
+      }),
+      invalidatesTags: ["Service"],
     }),
     deleteService: builder.mutation({
-      query: (id) => ({ url: `/services/${id}`, method: 'DELETE' }),
-      invalidatesTags: ['Service'],
+      query: (id) => ({ url: `/services/${id}`, method: "DELETE" }),
+      invalidatesTags: ["Service"],
     }),
     createLiveSession: builder.mutation({
-      query: (body) => ({ url: '/sessions/live/create', method: 'POST', body }),
-      invalidatesTags: ['Session'],
+      query: (body) => ({ url: "/sessions/create", method: "POST", body }),
+      invalidatesTags: ["Session"],
     }),
     createRecordedSession: builder.mutation({
-      query: (body) => ({ url: '/sessions/create', method: 'POST', body }),
-      invalidatesTags: ['Session'],
+      query: (body) => ({ url: "/sessions/create", method: "POST", body }),
+      invalidatesTags: ["Session"],
     }),
     updateSession: builder.mutation({
-      query: ({ id, ...body }) => ({ url: `/sessions/update/${id}`, method: 'PUT', body }),
-      invalidatesTags: ['Session'],
+      query: ({ id, ...body }) => ({
+        url: `/sessions/update/${id}`,
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["Session"],
     }),
     deleteSessions: builder.mutation({
-      query: (ids) => ({
-        url: '/sessions/delete',
-        method: 'DELETE',
-        body: Array.isArray(ids) ? ids : [ids],
+      query: (id) => ({
+        url: `/sessions/delete/${id}`,
+        method: "DELETE",
       }),
-      invalidatesTags: ['Session'],
+      invalidatesTags: ["Session"],
     }),
   }),
-})
+});
 
 export const {
   useGetServicesQuery,
@@ -89,4 +107,4 @@ export const {
   useDeleteSessionsMutation,
   useGetAllSessionsQuery,
   useGetSessionQuery,
-} = serviceApi
+} = serviceApi;
