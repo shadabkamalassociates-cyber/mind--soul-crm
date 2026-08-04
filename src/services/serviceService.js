@@ -1,5 +1,20 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
+function buildSessionFormData(body, thumbnailFile) {
+  const formData = new FormData();
+
+  Object.entries(body).forEach(([key, value]) => {
+    if (value === null || value === undefined) return;
+    formData.append(key, typeof value === "number" ? String(value) : value);
+  });
+
+  if (thumbnailFile) {
+    formData.append("thumbnail", thumbnailFile);
+  }
+
+  return formData;
+}
+
 export const serviceApi = createApi({
   reducerPath: "serviceApi",
   baseQuery: fetchBaseQuery({
@@ -66,26 +81,27 @@ export const serviceApi = createApi({
       query: (id) => ({ url: `/services/${id}`, method: "DELETE" }),
       invalidatesTags: ["Service"],
     }),
-    createLiveSession: builder.mutation({
-      query: (body) => ({ url: "/sessions/create", method: "POST", body }),
-      invalidatesTags: ["Session"],
-    }),
-    createRecordedSession: builder.mutation({
-      query: (body) => ({ url: "/sessions/create", method: "POST", body }),
+    createSession: builder.mutation({
+      query: ({ thumbnailFile, ...body }) => ({
+        url: "/sessions/create",
+        method: "POST",
+        body: buildSessionFormData(body, thumbnailFile),
+      }),
       invalidatesTags: ["Session"],
     }),
     updateSession: builder.mutation({
-      query: ({ id, ...body }) => ({
+      query: ({ id, thumbnailFile, ...body }) => ({
         url: `/sessions/update/${id}`,
         method: "PUT",
-        body,
+        body: buildSessionFormData(body, thumbnailFile),
       }),
       invalidatesTags: ["Session"],
     }),
     deleteSessions: builder.mutation({
-      query: (id) => ({
-        url: `/sessions/delete/${id}`,
+      query: (ids) => ({
+        url: "/sessions/delete",
         method: "DELETE",
+        body: { ids: Array.isArray(ids) ? ids : [ids] },
       }),
       invalidatesTags: ["Session"],
     }),
@@ -101,8 +117,7 @@ export const {
   useUpdateServiceVideoStatusMutation,
   useDeleteServiceMutation,
   useGetSessionsByExpertQuery,
-  useCreateLiveSessionMutation,
-  useCreateRecordedSessionMutation,
+  useCreateSessionMutation,
   useUpdateSessionMutation,
   useDeleteSessionsMutation,
   useGetAllSessionsQuery,

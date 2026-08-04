@@ -13,8 +13,7 @@ import {
 } from "lucide-react";
 import {
   useGetSessionsByExpertQuery,
-  useCreateLiveSessionMutation,
-  useCreateRecordedSessionMutation,
+  useCreateSessionMutation,
   useUpdateSessionMutation,
   useDeleteSessionsMutation,
 } from "../../services/serviceService";
@@ -56,19 +55,15 @@ const emptyForm = {
 
 export default function Services() {
   const user = useSelector((s) => s.auth.user);
-  console.log(user?.id, "lllllllllllllllllll");
 
-  // Use the new API endpoints
   const { data: mine = [], isLoading } = useGetSessionsByExpertQuery(user?.id, {
     skip: !user?.id,
   });
   const { data: categories = [] } = useGetCategoriesQuery();
 
-  const [createLive] = useCreateLiveSessionMutation();
-  const [createRecorded] = useCreateRecordedSessionMutation();
+  const [createSession] = useCreateSessionMutation();
   const [updateSession] = useUpdateSessionMutation();
   const [deleteSessions] = useDeleteSessionsMutation();
-  console.log(mine, "555555555555555");
 
   const [filterType, setFilterType] = useState("ALL");
   const [modalOpen, setModalOpen] = useState(false);
@@ -135,6 +130,11 @@ export default function Services() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!user?.id) {
+      alert("You must be logged in to create a session.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     const isLive = form.session_type === "LIVE";
@@ -144,47 +144,48 @@ export default function Services() {
       category_id: form.category_id,
       title: form.title,
       description: form.description,
-      thumbnail: form.thumbnail,
       price: Number(form.price) || 0,
       language: form.language,
       session_type: form.session_type,
-      status: isLive ? "UPCOMING" : "COMPLETE",
+      status: isLive ? "UPCOMING" : "COMPLETED",
     };
 
     if (isLive) {
       payload.start_time = form.start_time
         ? new Date(form.start_time).toISOString()
-        : null;
+        : "";
       payload.end_time = form.end_time
         ? new Date(form.end_time).toISOString()
-        : null;
+        : "";
       payload.duration_minutes = form.duration_minutes
         ? Number(form.duration_minutes)
-        : null;
+        : "";
       payload.max_participants = form.max_participants
         ? Number(form.max_participants)
-        : null;
+        : "";
       payload.meeting_link = form.meeting_link;
       payload.video_url = "";
     } else {
       payload.video_url = form.video_url;
-      // Clear out live fields just to be safe
       payload.meeting_link = "";
-      payload.start_time = null;
-      payload.end_time = null;
-      payload.duration_minutes = null;
-      payload.max_participants = null;
+      payload.start_time = "";
+      payload.end_time = "";
+      payload.duration_minutes = "";
+      payload.max_participants = "";
     }
 
     try {
       if (editing) {
-        await updateSession({ id: editing.id, ...payload }).unwrap();
+        await updateSession({
+          id: editing.id,
+          thumbnailFile: imageFile,
+          ...payload,
+        }).unwrap();
       } else {
-        if (isLive) {
-          await createLive(payload).unwrap();
-        } else {
-          await createRecorded(payload).unwrap();
-        }
+        await createSession({
+          thumbnailFile: imageFile,
+          ...payload,
+        }).unwrap();
       }
       setModalOpen(false);
     } catch (err) {
@@ -192,6 +193,8 @@ export default function Services() {
         err?.data?.message ||
           "Failed to save session. Please check your inputs.",
       );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
