@@ -25,7 +25,7 @@ export default function Dashboard() {
 
   return (
     <div>
-      <PageHeader title={`Welcome back, ${expert?.name?.split(' ')[0] || ''}`} subtitle="Here's what's happening with your SoulSensei practice." />
+      <PageHeader title={`Welcome back, ${expert?.name?.split(' ')[0] || ''}`} subtitle="Here's what's happening with your Cosmicguruji practice." />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Lifetime Earnings" value={currency(expert?.earningsLifetime)} icon={IndianRupee} accent="dusk" />

@@ -128,6 +128,44 @@ export default function Services() {
     }
   };
 
+  const buildSessionPayload = (isLive, isEdit) => {
+    const payload = {
+      category_id: form.category_id,
+      title: form.title,
+      description: form.description,
+      price: Number(form.price) || 0,
+      language: form.language,
+      session_type: form.session_type,
+      status: isLive ? "UPCOMING" : "COMPLETED",
+    };
+
+    if (!isEdit) {
+      payload.expert_id = user.id;
+    }
+
+    if (isLive) {
+      if (form.start_time) {
+        payload.start_time = new Date(form.start_time).toISOString();
+      }
+      if (form.end_time) {
+        payload.end_time = new Date(form.end_time).toISOString();
+      }
+      if (form.duration_minutes) {
+        payload.duration_minutes = Number(form.duration_minutes);
+      }
+      if (form.max_participants) {
+        payload.max_participants = Number(form.max_participants);
+      }
+      if (form.meeting_link) {
+        payload.meeting_link = form.meeting_link;
+      }
+    } else if (form.video_url) {
+      payload.video_url = form.video_url;
+    }
+
+    return payload;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!user?.id) {
@@ -138,41 +176,7 @@ export default function Services() {
     setIsSubmitting(true);
 
     const isLive = form.session_type === "LIVE";
-
-    const payload = {
-      expert_id: user.id,
-      category_id: form.category_id,
-      title: form.title,
-      description: form.description,
-      price: Number(form.price) || 0,
-      language: form.language,
-      session_type: form.session_type,
-      status: isLive ? "UPCOMING" : "COMPLETED",
-    };
-
-    if (isLive) {
-      payload.start_time = form.start_time
-        ? new Date(form.start_time).toISOString()
-        : "";
-      payload.end_time = form.end_time
-        ? new Date(form.end_time).toISOString()
-        : "";
-      payload.duration_minutes = form.duration_minutes
-        ? Number(form.duration_minutes)
-        : "";
-      payload.max_participants = form.max_participants
-        ? Number(form.max_participants)
-        : "";
-      payload.meeting_link = form.meeting_link;
-      payload.video_url = "";
-    } else {
-      payload.video_url = form.video_url;
-      payload.meeting_link = "";
-      payload.start_time = "";
-      payload.end_time = "";
-      payload.duration_minutes = "";
-      payload.max_participants = "";
-    }
+    const payload = buildSessionPayload(isLive, Boolean(editing));
 
     try {
       if (editing) {
