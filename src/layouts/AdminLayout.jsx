@@ -21,6 +21,7 @@ export default function AdminLayout() {
     { to: '/admin/experts', label: 'Experts', icon: GraduationCap, badge: pendingExperts },
     { to: '/admin/sessions', label: 'Sessions', icon: BadgeCheck, badge: pendingServices },
     { to: '/admin/bookings', label: 'Bookings', icon: CalendarClock },
+    { to: '/admin/meetings', label: 'Meetings', icon: Video },
     { to: '/admin/live-sessions', label: 'Live Sessions', icon: Video },
     // { to: '/admin/reviews', label: 'Reviews', icon: Star },
     // { to: '/admin/coupons', label: 'Coupons', icon: Ticket },

@@ -15,6 +15,7 @@ import AdminExpertDetail from './pages/admin/ExpertDetail'
 import AdminServices from './pages/admin/Services'
 import AdminServiceDetail from './pages/admin/ServiceDetail'
 import AdminBookings from './pages/admin/Bookings'
+import AdminMeetings from './pages/admin/Meetings'
 import AdminLiveSessions from './pages/admin/LiveSessions'
 import AdminReviews from './pages/admin/Reviews'
 import AdminCoupons from './pages/admin/Coupons'
@@ -27,10 +28,12 @@ import ExpertLayout from './layouts/ExpertLayout'
 import ExpertDashboard from './pages/expert/Dashboard'
 import ExpertProfile from './pages/expert/Profile'
 import ExpertServices from './pages/expert/Services'
+import ExpertMeetings from './pages/expert/Meetings'
 import ExpertLiveSessions from './pages/expert/LiveSessions'
 import ExpertBookings from './pages/expert/Bookings'
 import ExpertEarnings from './pages/expert/Earnings'
 import ExpertReviews from './pages/expert/Reviews'
+import MeetingRoom from './pages/meeting/MeetingRoom'
 
 function RootRedirect() {
   const { user } = useSelector((s) => s.auth)
@@ -57,6 +60,7 @@ export default function App() {
             <Route path="sessions" element={<AdminServices />} />
             <Route path="sessions/:id" element={<AdminServiceDetail />} />
             <Route path="bookings" element={<AdminBookings />} />
+            <Route path="meetings" element={<AdminMeetings />} />
             <Route path="live-sessions" element={<AdminLiveSessions />} />
             <Route path="reviews" element={<AdminReviews />} />
             <Route path="coupons" element={<AdminCoupons />} />
@@ -72,12 +76,16 @@ export default function App() {
             <Route index element={<ExpertDashboard />} />
             <Route path="profile" element={<ExpertProfile />} />
             <Route path="sessions" element={<ExpertServices />} />
+            <Route path="meetings" element={<ExpertMeetings />} />
             <Route path="live-sessions" element={<ExpertLiveSessions />} />
             <Route path="bookings" element={<ExpertBookings />} />
             <Route path="earnings" element={<ExpertEarnings />} />
             <Route path="reviews" element={<ExpertReviews />} />
           </Route>
         </Route>
+
+        <Route path="/meeting" element={<MeetingRoom />} />
+        <Route path="/meeting/:channelId" element={<MeetingRoom />} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

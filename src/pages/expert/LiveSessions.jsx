@@ -1,5 +1,6 @@
 import { useSelector } from 'react-redux'
-import { Video, ExternalLink, Users2, Clock } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Video, ExternalLink, Users2, Clock, Sparkles } from 'lucide-react'
 import { useGetServicesQuery } from '../../services/serviceService'
 import { useGetBookingsQuery } from '../../services/bookingService'
 import { PageHeader, EmptyState } from '../../components/Common'
@@ -9,6 +10,7 @@ import { currency, formatDateTime } from '../../utils/status'
 const NOW = new Date('2026-07-16T09:00:00+05:30')
 
 export default function LiveSessions() {
+  const navigate = useNavigate()
   const user = useSelector((s) => s.auth.user)
   const { data: services = [], isLoading } = useGetServicesQuery()
   const { data: bookings = [] } = useGetBookingsQuery()
@@ -18,6 +20,13 @@ export default function LiveSessions() {
   const past = mySessions.filter((s) => new Date(s.scheduledAt) < NOW).sort((a, b) => new Date(b.scheduledAt) - new Date(a.scheduledAt))
 
   const seatCount = (id) => bookings.filter((b) => b.serviceId === id && b.status !== 'refunded').length
+
+  const handleStartAgoraMeeting = (session) => {
+    const channel = `session-${session.id}`
+    navigate(`/meeting/${channel}`, {
+      state: { title: session.title },
+    })
+  }
 
   const Card = ({ s, isPast }) => (
     <div className="rounded-2xl border border-dusk-50 bg-white p-5 shadow-sm">
@@ -30,17 +39,37 @@ export default function LiveSessions() {
         <span className="flex items-center gap-1.5"><Users2 size={14} /> {seatCount(s.id)}{s.maxSeats ? ` / ${s.maxSeats}` : ''} attendees</span>
         <span>{currency(s.price)} per seat</span>
       </div>
-      {s.meetLink && !isPast && (
-        <a href={s.meetLink} target="_blank" rel="noreferrer" className="mt-3 flex w-fit items-center gap-1.5 rounded-lg bg-marigold-500 px-3.5 py-2 text-sm font-medium text-white hover:bg-marigold-700">
-          <Video size={15} /> Join / Start on Google Meet <ExternalLink size={13} />
-        </a>
+      
+      {!isPast && (
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => handleStartAgoraMeeting(s)}
+            className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-marigold-500 to-marigold-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:from-marigold-600 hover:to-marigold-700 active:scale-95 transition-all"
+          >
+            <Sparkles size={14} /> Start Agora Live Room
+          </button>
+
+          {s.meetLink && (
+            <a
+              href={s.meetLink}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-1.5 rounded-xl border border-dusk-100 bg-dusk-50 px-3 py-2 text-xs font-medium text-dusk-700 hover:bg-dusk-100"
+            >
+              <Video size={14} /> Google Meet <ExternalLink size={12} />
+            </a>
+          )}
+        </div>
       )}
     </div>
   )
 
   return (
     <div>
-      <PageHeader title="Live Sessions" subtitle="All your live sessions run on Google Meet — the link goes live once admin approves your session." />
+      <PageHeader
+        title="Live Sessions"
+        subtitle="Host high-definition interactive video sessions with attendees using built-in Agora RTC or Google Meet."
+      />
 
       <h3 className="mb-3 font-display text-base font-semibold text-ink">Upcoming</h3>
       {upcoming.length === 0 && !isLoading ? (

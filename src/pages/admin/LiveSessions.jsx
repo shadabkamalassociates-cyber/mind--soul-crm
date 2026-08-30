@@ -1,4 +1,5 @@
-import { Video, ExternalLink, Users2, Clock } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Video, ExternalLink, Users2, Clock, Sparkles } from 'lucide-react'
 import { useGetAllSessionsQuery } from '../../services/serviceService'
 import { useGetExpertsQuery } from '../../services/expertService'
 import { useGetBookingsQuery } from '../../services/bookingService'
@@ -9,6 +10,7 @@ import { currency, formatDateTime } from '../../utils/status'
 const NOW = new Date('2026-07-16T09:00:00+05:30')
 
 export default function LiveSessions() {
+  const navigate = useNavigate()
   const { data: services = [], isLoading } = useGetAllSessionsQuery()
   const { data: experts = [] } = useGetExpertsQuery()
   const { data: bookings = [] } = useGetBookingsQuery()
@@ -19,6 +21,13 @@ export default function LiveSessions() {
   const past = liveSessions.filter((s) => new Date(s.scheduledAt) < NOW).sort((a, b) => new Date(b.scheduledAt) - new Date(a.scheduledAt))
 
   const seatCount = (serviceId) => bookings.filter((b) => b.serviceId === serviceId && b.status !== 'refunded').length
+
+  const handleJoinAgoraMeeting = (session) => {
+    const channel = `session-${session.id}`
+    navigate(`/meeting/${channel}`, {
+      state: { title: session.title },
+    })
+  }
 
   const Card = ({ s, isPast }) => (
     <div className="rounded-2xl border border-dusk-50 bg-white p-5 shadow-sm">
@@ -40,10 +49,26 @@ export default function LiveSessions() {
         <span>{currency(s.price)} per seat</span>
       </div>
 
-      {s.meetLink && (
-        <a href={s.meetLink} target="_blank" rel="noreferrer" className="mt-3 flex w-fit items-center gap-1.5 rounded-lg bg-dusk-50 px-3 py-1.5 text-xs font-medium text-dusk-700 hover:bg-dusk-100">
-          <Video size={14} /> {s.meetLink} <ExternalLink size={12} />
-        </a>
+      {!isPast && (
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => handleJoinAgoraMeeting(s)}
+            className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-marigold-500 to-marigold-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:from-marigold-600 hover:to-marigold-700 active:scale-95 transition-all"
+          >
+            <Sparkles size={13} /> Join Agora Live Room
+          </button>
+
+          {s.meetLink && (
+            <a
+              href={s.meetLink}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-1.5 rounded-xl border border-dusk-100 bg-dusk-50 px-3 py-1.5 text-xs font-medium text-dusk-700 hover:bg-dusk-100"
+            >
+              <Video size={13} /> Google Meet <ExternalLink size={12} />
+            </a>
+          )}
+        </div>
       )}
     </div>
   )

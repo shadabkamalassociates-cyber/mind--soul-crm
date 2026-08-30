@@ -4,7 +4,7 @@ function buildSessionFormData(body, thumbnailFile) {
   const formData = new FormData();
 
   Object.entries(body).forEach(([key, value]) => {
-    if (value === null || value === undefined) return;
+    if (value === null || value === undefined || value === "") return;
     formData.append(key, typeof value === "number" ? String(value) : value);
   });
 

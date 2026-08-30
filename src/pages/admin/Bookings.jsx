@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { Search } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Search, Video } from 'lucide-react'
 import { useGetBookingsQuery, useUpdateBookingMutation, useGetCommunityPaymentsQuery, useVerifyPaymentMutation } from '../../services/bookingService'
 import { useGetAllSessionsQuery } from '../../services/serviceService'
 import { useGetUsersQuery } from '../../services/userService'
@@ -17,6 +18,7 @@ const tabCls = (active) =>
   }`
 
 export default function Bookings() {
+  const navigate = useNavigate()
   const [tab, setTab] = useState('community')
   const [search, setSearch] = useState('')
 
@@ -27,6 +29,15 @@ export default function Bookings() {
   const { data: experts = [] } = useGetExpertsQuery()
   const [updateBooking] = useUpdateBookingMutation()
   const [verifyPayment, { isLoading: isVerifying }] = useVerifyPaymentMutation()
+
+  const handleStartConsultation = (booking) => {
+    const channel = `consultation-${booking.id}`
+    const serviceName = serviceById[booking.serviceId]?.title || 'Consultation'
+    const userName = userById[booking.userId]?.name || 'Client'
+    navigate(`/meeting/${channel}`, {
+      state: { title: `${serviceName} (with ${userName})` },
+    })
+  }
 
   const handleVerify = async (row) => {
     try {
@@ -75,9 +86,28 @@ export default function Bookings() {
     { key: 'amount', header: 'Amount', render: (r) => currency(r.amount) },
     { key: 'status', header: 'Status', render: (r) => <Badge tone={meta(r.status).tone}>{meta(r.status).label}</Badge> },
     {
-      key: 'actions', header: '', render: (r) => r.status === 'confirmed' ? (
-        <Button variant="ghost" className="!px-2 !py-1 text-xs" onClick={() => updateBooking({ id: r.id, status: 'refunded' })}>Refund</Button>
-      ) : null,
+      key: 'actions',
+      header: 'Actions',
+      render: (r) => (
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => handleStartConsultation(r)}
+            className="flex items-center gap-1 rounded-lg bg-marigold-500/10 px-2 py-1 text-xs font-semibold text-marigold-600 hover:bg-marigold-500 hover:text-white transition-all"
+            title="Join / Monitor Consultation"
+          >
+            <Video size={12} /> Call
+          </button>
+          {r.status === 'confirmed' && (
+            <Button
+              variant="ghost"
+              className="!px-2 !py-1 text-xs"
+              onClick={() => updateBooking({ id: r.id, status: 'refunded' })}
+            >
+              Refund
+            </Button>
+          )}
+        </div>
+      ),
     },
   ]
 

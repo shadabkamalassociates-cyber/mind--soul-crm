@@ -10,6 +10,7 @@ import { couponApi } from '../services/couponService'
 import { payoutApi } from '../services/payoutService'
 import { settingsApi } from '../services/settingsService'
 import { blogApi } from '../services/blogService'
+import { virtualMeetingApi } from '../services/virtualMeetingService'
 import authReducer from '../features/auth/authSlice'
 
 export const store = configureStore({
@@ -26,6 +27,7 @@ export const store = configureStore({
     [payoutApi.reducerPath]: payoutApi.reducer,
     [settingsApi.reducerPath]: settingsApi.reducer,
     [blogApi.reducerPath]: blogApi.reducer,
+    [virtualMeetingApi.reducerPath]: virtualMeetingApi.reducer,
   },
   middleware: (getDefault) =>
     getDefault().concat(
@@ -39,6 +41,7 @@ export const store = configureStore({
       couponApi.middleware,
       payoutApi.middleware,
       settingsApi.middleware,
-      blogApi.middleware
+      blogApi.middleware,
+      virtualMeetingApi.middleware
     ),
 })

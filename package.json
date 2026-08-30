@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.12.0",
+    "agora-rtc-sdk-ng": "^4.24.7",
     "date-fns": "^4.4.0",
     "es-toolkit": "^1.49.0",
     "lucide-react": "^1.24.0",

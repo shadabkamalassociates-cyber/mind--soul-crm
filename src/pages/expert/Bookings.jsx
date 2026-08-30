@@ -8,9 +8,11 @@ import { PageHeader, inputCls, EmptyState } from '../../components/Common'
 import DataTable from '../../components/DataTable'
 import Badge from '../../components/Badge'
 import { meta, currency, formatDateTime } from '../../utils/status'
-import { CalendarClock } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Video, CalendarClock } from 'lucide-react'
 
 export default function Bookings() {
+  const navigate = useNavigate()
   const user = useSelector((s) => s.auth.user)
   const { data: bookings = [], isLoading } = useGetBookingsQuery()
   const { data: services = [] } = useGetServicesQuery()
@@ -25,12 +27,33 @@ export default function Bookings() {
     .filter((b) => (userById[b.userId]?.name || '').toLowerCase().includes(search.toLowerCase()))
     .slice().reverse(), [bookings, search, userById, user.id])
 
+  const handleStartConsultation = (booking) => {
+    const channel = `consultation-${booking.id}`
+    const serviceName = serviceById[booking.serviceId]?.title || 'Consultation'
+    const userName = userById[booking.userId]?.name || 'Client'
+    navigate(`/meeting/${channel}`, {
+      state: { title: `${serviceName} (with ${userName})` },
+    })
+  }
+
   const columns = [
     { key: 'user', header: 'User', render: (r) => userById[r.userId]?.name || '—' },
     { key: 'service', header: 'Session', render: (r) => <span className="max-w-[220px] truncate block">{serviceById[r.serviceId]?.title}</span> },
     { key: 'sessionAt', header: 'Session Time', render: (r) => formatDateTime(r.sessionAt) },
     { key: 'amount', header: 'Amount', render: (r) => currency(r.amount) },
     { key: 'status', header: 'Status', render: (r) => <Badge tone={meta(r.status).tone}>{meta(r.status).label}</Badge> },
+    {
+      key: 'actions',
+      header: 'Video Call',
+      render: (r) => (
+        <button
+          onClick={() => handleStartConsultation(r)}
+          className="flex items-center gap-1 rounded-lg bg-marigold-500/10 px-2.5 py-1 text-xs font-semibold text-marigold-600 hover:bg-marigold-500 hover:text-white transition-all"
+        >
+          <Video size={13} /> Call
+        </button>
+      ),
+    },
   ]
 
   return (
