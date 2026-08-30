@@ -26,6 +26,11 @@ export const statusMeta = {
   // payouts
   paid: { label: 'Paid', tone: 'approved' },
 
+  // community payments
+  success: { label: 'Success', tone: 'approved' },
+  failed: { label: 'Failed', tone: 'rejected' },
+  pending_payment: { label: 'Pending Payment', tone: 'pending' },
+
   // reviews
   published: { label: 'Published', tone: 'approved' },
   flagged: { label: 'Flagged', tone: 'rejected' },
