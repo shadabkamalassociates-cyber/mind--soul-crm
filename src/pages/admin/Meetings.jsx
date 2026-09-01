@@ -72,15 +72,15 @@ export default function AdminMeetings() {
       {/* Two Column Quick Actions: Create or Join */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Card 1: Admin Create Instant Meeting */}
-        <div className="flex flex-col justify-between rounded-3xl border border-dusk-100 bg-gradient-to-br from-dusk-900 via-dusk-800 to-dusk-900 p-6 sm:p-8 text-white shadow-xl">
+        <div className="flex flex-col justify-between rounded-3xl border border-dusk-100 bg-white p-6 sm:p-8 shadow-sm">
           <div>
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-marigold-400">
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-dusk-700">
               <Sparkles size={14} /> Admin Video Room
             </div>
-            <h2 className="mt-2 text-2xl font-bold text-white">
+            <h2 className="mt-2 text-2xl font-bold text-ink">
               Create Instant Video Meeting
             </h2>
-            <p className="mt-1.5 text-xs text-white/70 leading-relaxed">
+            <p className="mt-1.5 text-xs text-ink-soft leading-relaxed">
               Launch a live Agora HD meeting room instantly for administrative
               reviews, client consultations, or team syncs.
             </p>
@@ -92,12 +92,12 @@ export default function AdminMeetings() {
               placeholder="Meeting Title (e.g. Weekly Strategy Sync)"
               value={instantRoomTitle}
               onChange={(e) => setInstantRoomTitle(e.target.value)}
-              className="w-full rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-xs text-white placeholder-white/40 focus:border-marigold-400 focus:outline-none"
+              className="w-full rounded-xl border border-dusk-200 bg-dusk-50/50 px-4 py-3 text-xs text-ink placeholder-ink-soft/60 focus:border-dusk-500 focus:bg-white focus:outline-none"
             />
             <button
               type="submit"
               disabled={isCreating}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-marigold-500 to-marigold-600 py-3.5 text-xs font-bold text-white shadow-lg shadow-marigold-500/25 hover:from-marigold-600 hover:to-marigold-700 active:scale-95 transition-all disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-dusk-700 py-3.5 text-xs font-bold text-white shadow-md hover:bg-dusk-900 active:scale-95 transition-all disabled:opacity-50"
             >
               <Video size={16} />{" "}
               {isCreating ? "Launching Room…" : "Launch Instant Room"}
