@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useState } from "react";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import {
   Video,
   Sparkles,
@@ -9,26 +9,28 @@ import {
   Zap,
   Mic,
   Monitor,
-} from 'lucide-react';
-import { useCreateVirtualMeetingMutation } from '../../services/virtualMeetingService';
-import { PageHeader } from '../../components/Common';
+} from "lucide-react";
+import { useCreateVirtualMeetingMutation } from "../../services/virtualMeetingService";
+import { PageHeader } from "../../components/Common";
 
 export default function ExpertMeetings() {
   const navigate = useNavigate();
   const user = useSelector((s) => s.auth.user);
-  const [createVirtualMeeting, { isLoading: isCreating }] = useCreateVirtualMeetingMutation();
+  const [createVirtualMeeting, { isLoading: isCreating }] =
+    useCreateVirtualMeetingMutation();
 
-  const [instantRoomTitle, setInstantRoomTitle] = useState('');
-  const [joinMeetingInput, setJoinMeetingInput] = useState('');
+  const [instantRoomTitle, setInstantRoomTitle] = useState("");
+  const [joinMeetingInput, setJoinMeetingInput] = useState("");
 
   const handleStartInstantMeeting = async (e) => {
     e.preventDefault();
     try {
       const res = await createVirtualMeeting().unwrap();
-      const meetingId = res?.meetingId || `room-${Math.random().toString(36).substring(2, 8)}`;
+      const meetingId =
+        res?.meetingId || `room-${Math.random().toString(36).substring(2, 8)}`;
       navigate(`/meeting/${meetingId}`, {
         state: {
-          title: instantRoomTitle.trim() || 'Instant Agora Video Meeting',
+          title: instantRoomTitle.trim() || "Instant Agora Video Meeting",
           token: res?.token,
           channelName: res?.channelName,
           appId: res?.appId,
@@ -36,10 +38,12 @@ export default function ExpertMeetings() {
         },
       });
     } catch (err) {
-      console.warn('Create virtual meeting API fallback to local room:', err);
+      console.warn("Create virtual meeting API fallback to local room:", err);
       const cleanRoom = `room-${Math.random().toString(36).substring(2, 8)}`;
       navigate(`/meeting/${cleanRoom}`, {
-        state: { title: instantRoomTitle.trim() || 'Instant Agora Video Meeting' },
+        state: {
+          title: instantRoomTitle.trim() || "Instant Agora Video Meeting",
+        },
       });
     }
   };
@@ -50,14 +54,14 @@ export default function ExpertMeetings() {
 
     // Handle full URL pasted or meeting ID
     let id = joinMeetingInput.trim();
-    if (id.includes('/meeting/')) {
-      id = id.split('/meeting/')[1].split('?')[0];
+    if (id.includes("/meeting/")) {
+      id = id.split("/meeting/")[1].split("?")[0];
     }
-    id = id.replace(/^cosmic_guru_/, '').trim();
+    id = id.replace(/^cosmic_guru_/, "").trim();
 
     if (id) {
       navigate(`/meeting/${id}`, {
-        state: { title: 'Online Video Meeting' },
+        state: { title: "Online Video Meeting" },
       });
     }
   };
@@ -77,9 +81,12 @@ export default function ExpertMeetings() {
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-marigold-400">
               <Sparkles size={14} /> Host New Meeting
             </div>
-            <h2 className="mt-2 text-2xl font-bold text-white">Start an Instant Video Room</h2>
+            <h2 className="mt-2 text-2xl font-bold text-white">
+              Start an Instant Video Room
+            </h2>
             <p className="mt-1.5 text-xs text-white/70 leading-relaxed">
-              Generate an Agora HD video meeting room instantly and invite clients, attendees, or admins with a single click.
+              Generate an Agora HD video meeting room instantly and invite
+              clients, attendees, or admins with a single click.
             </p>
           </div>
 
@@ -96,7 +103,8 @@ export default function ExpertMeetings() {
               disabled={isCreating}
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-marigold-500 to-marigold-600 py-3.5 text-xs font-bold text-white shadow-lg shadow-marigold-500/25 hover:from-marigold-600 hover:to-marigold-700 active:scale-95 transition-all disabled:opacity-50"
             >
-              <Video size={16} /> {isCreating ? 'Creating Room…' : 'Start Instant Meeting'}
+              <Video size={16} />{" "}
+              {isCreating ? "Creating Room…" : "Start Instant Meeting"}
             </button>
           </form>
         </div>
@@ -107,9 +115,12 @@ export default function ExpertMeetings() {
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-emerald-600">
               <Video size={14} /> Join Call
             </div>
-            <h2 className="mt-2 text-2xl font-bold text-ink">Join Existing Meeting</h2>
+            <h2 className="mt-2 text-2xl font-bold text-ink">
+              Join Existing Meeting
+            </h2>
             <p className="mt-1.5 text-xs text-ink-soft leading-relaxed">
-              Enter a Meeting ID or paste an invite link shared by an admin, client, or team member.
+              Enter a Meeting ID or paste an invite link shared by an admin,
+              client, or team member.
             </p>
           </div>
 
@@ -129,39 +140,6 @@ export default function ExpertMeetings() {
               <Users2 size={16} /> Join Meeting
             </button>
           </form>
-        </div>
-      </div>
-
-      {/* Feature Highlights Banner */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="flex items-center gap-3.5 rounded-2xl border border-dusk-100 bg-white p-4 shadow-sm">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-marigold-500/10 text-marigold-600">
-            <Zap size={20} />
-          </div>
-          <div>
-            <p className="text-xs font-bold text-ink">Ultra-Low Latency</p>
-            <p className="text-[11px] text-ink-soft">Real-time HD audio & video engagement</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3.5 rounded-2xl border border-dusk-100 bg-white p-4 shadow-sm">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600">
-            <Monitor size={20} />
-          </div>
-          <div>
-            <p className="text-xs font-bold text-ink">Screen Sharing</p>
-            <p className="text-[11px] text-ink-soft">Share documents, tabs, and presentations</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3.5 rounded-2xl border border-dusk-100 bg-white p-4 shadow-sm">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-600">
-            <ShieldCheck size={20} />
-          </div>
-          <div>
-            <p className="text-xs font-bold text-ink">Secure RTC Tokens</p>
-            <p className="text-[11px] text-ink-soft">Encrypted channels & token authentication</p>
-          </div>
         </div>
       </div>
     </div>
